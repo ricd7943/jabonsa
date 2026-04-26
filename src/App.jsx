@@ -5,17 +5,19 @@ function App() {
   const [mensaje, setMensaje] = useState('');
   const [compras, setCompras] = useState([]);
 
+  const API = "https://legendary-dollop-x594vrj7wpjxhp744-4000.app.github.dev";
+
   // Función para comprar
   const comprar = async (producto) => {
     try {
-      const res = await fetch("http://localhost:3000/comprar", {
+      const res = await fetch(`${API}/comprar`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ producto })
       });
       const data = await res.json();
       setMensaje(`✅ ${data.producto} - ${data.mensaje}`);
-      fetchCompras(); // actualizar lista
+      fetchCompras();
       setTimeout(() => setMensaje(''), 3000);
     } catch (err) {
       console.error(err);
@@ -26,7 +28,7 @@ function App() {
   // Función para obtener la lista de compras
   const fetchCompras = async () => {
     try {
-      const res = await fetch("http://localhost:3000/compras");
+      const res = await fetch(`${API}/compras`);
       const data = await res.json();
       setCompras(data);
     } catch (err) {

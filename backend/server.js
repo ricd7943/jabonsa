@@ -4,14 +4,16 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: "*",
+  methods: ["GET", "POST"],
+  allowedHeaders: ["Content-Type"]
+}));
 app.use(express.json());
 
 // Conexión a MongoDB
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
+mongoose.connect(process.env.MONGO_URI)
+
   .then(() => console.log('🗄 MongoDB conectado'))
   .catch(err => console.log(err));
 
@@ -46,4 +48,5 @@ app.get('/compras', async (req, res) => {
 });
 
 // Servidor
-app.listen(3000, () => console.log('🚀 Backend en http://localhost:3000'));
+const PORT = process.env.PORT || 4000;
+app.listen(PORT, () => console.log(`🚀 Backend en puerto ${PORT}`));
