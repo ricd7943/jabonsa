@@ -5,7 +5,7 @@ function App() {
   const [mensaje, setMensaje] = useState('');
   const [compras, setCompras] = useState([]);
 
-  const API = "https://legendary-dollop-x594vrj7wpjxhp744-4000.app.github.dev";
+  const API = "https://jabonsa.onrender.com";
 
   // Función para comprar
   const comprar = async (producto) => {
