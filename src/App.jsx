@@ -7,7 +7,6 @@ function App() {
 
   const API = "https://jabonsa.onrender.com";
 
-  // Función para comprar
   const comprar = async (producto) => {
     try {
       const res = await fetch(`${API}/comprar`, {
@@ -25,7 +24,6 @@ function App() {
     }
   };
 
-  // Función para obtener la lista de compras
   const fetchCompras = async () => {
     try {
       const res = await fetch(`${API}/compras`);
@@ -36,76 +34,106 @@ function App() {
     }
   };
 
-  // Cargar compras al inicio
   useEffect(() => {
     fetchCompras();
   }, []);
 
+  const productos = [
+    { id: 'rose', nombre: 'Rose de Luxe', desc: 'Jabón en forma de corazón con esencia de rosa natural', precio: '$12.00 USD', emoji: '🌹' },
+    { id: 'grappe', nombre: "Grappe d'Or", desc: 'Ramo de uvas para colgar, hidratación en cada lavado', precio: '$18.00 USD', emoji: '🍇' },
+    { id: 'fleur', nombre: 'Fleur Douce', desc: 'Colección floral con aceites esenciales de lavanda', precio: '$15.00 USD', emoji: '🌸' },
+  ];
+
   return (
-    <div className="App">
-      {/* HEADER */}
-      <header className="header">
-        <div className="logo">🧼 Jabonsa</div>
-        <nav>
-          <a href="#productos">Productos</a>
-          <a href="#beneficios">Beneficios</a>
-          <a href="#compras">Compras</a>
+    <div className="sd-wrap">
+      <header className="sd-header">
+        <div className="sd-logo">
+          Savon d'Art
+          <span>Maison Artisanale</span>
+        </div>
+        <nav className="sd-nav">
+          <a href="#collection">Collection</a>
+          <a href="#esencia">L'Essence</a>
+          <a href="#pedidos">Pedidos</a>
         </nav>
       </header>
 
-      {/* HERO */}
-      <section className="hero">
-        <h1>Jabones Naturales Premium</h1>
-        <p>Cuida tu piel con productos orgánicos hechos a mano</p>
-        <button onClick={() => window.scrollTo({ top: 600, behavior: 'smooth' })}>
-          Ver productos
+      <section className="sd-hero">
+        <p className="sd-hero-pre">Collection Exclusive 2026</p>
+        <h1>L'art du soin,<br /><em>fait à la main</em></h1>
+        <p>Jabones artesanales de lujo para espacios únicos</p>
+        <button className="sd-btn" onClick={() => document.getElementById('collection').scrollIntoView({ behavior: 'smooth' })}>
+          Découvrir la Collection
         </button>
       </section>
 
-      {/* PRODUCTOS */}
-      <section className="section" id="productos">
-        <h2>Productos destacados</h2>
-        <div className="cards">
-          {['Lavanda', 'Coco', 'Aloe Vera'].map(prod => (
-            <div className="card" key={prod}>
-              <h3>{prod}</h3>
-              <p>{prod === 'Lavanda' ? 'Relajante y aromático' : prod === 'Coco' ? 'Hidratación profunda' : 'Regeneración natural'}</p>
-              <button onClick={() => comprar(prod)}>Comprar</button>
+      <section className="sd-section" id="collection">
+        <div className="sd-section-title">
+          <p>Notre Collection</p>
+          <h2>Piezas Artesanales</h2>
+          <div className="sd-divider"></div>
+        </div>
+        <div className="sd-cards">
+          {productos.map(prod => (
+            <div className="sd-card" key={prod.id}>
+              <div className="sd-card-icon">{prod.emoji}</div>
+              <h3>{prod.nombre}</h3>
+              <p>{prod.desc}</p>
+              <p className="sd-card-price">{prod.precio}</p>
+              <button className="sd-card-btn" onClick={() => comprar(prod.nombre)}>
+                Añadir al pedido
+              </button>
             </div>
           ))}
         </div>
       </section>
 
-      {/* BENEFICIOS */}
-      <section className="section dark" id="beneficios">
-        <h2>¿Por qué Jabonsa?</h2>
-        <div className="cards">
-          <div className="card">🌿 100% Natural</div>
-          <div className="card">🚫 Sin químicos</div>
-          <div className="card">🧴 Hecho a mano</div>
+      <section className="sd-section sd-dark" id="esencia">
+        <div className="sd-section-title">
+          <p>L'Essence</p>
+          <h2>Por qué Savon d'Art</h2>
+          <div className="sd-divider"></div>
+        </div>
+        <div className="sd-features">
+          <div className="sd-feature">
+            <div className="sd-feature-icon">✦</div>
+            <p>100% Natural</p>
+          </div>
+          <div className="sd-feature">
+            <div className="sd-feature-icon">✦</div>
+            <p>Hecho a mano</p>
+          </div>
+          <div className="sd-feature">
+            <div className="sd-feature-icon">✦</div>
+            <p>Edición limitada</p>
+          </div>
         </div>
       </section>
 
-      {/* LISTA DE COMPRAS */}
-      <section className="section" id="compras">
-        <h2>Últimas compras</h2>
+      <section className="sd-section" id="pedidos">
+        <div className="sd-section-title">
+          <p>Historique</p>
+          <h2>Últimos Pedidos</h2>
+          <div className="sd-divider"></div>
+        </div>
         {compras.length === 0 ? (
-          <p>No hay compras aún.</p>
+          <p style={{ textAlign: 'center', color: 'var(--color-text-secondary)', fontSize: '14px' }}>No hay pedidos aún.</p>
         ) : (
-          <ul>
+          <ul className="sd-pedidos">
             {compras.map(c => (
-              <li key={c._id}>{c.producto} - {new Date(c.fecha).toLocaleString()}</li>
+              <li key={c._id}>
+                <span>{c.producto}</span>
+                <span>{new Date(c.fecha).toLocaleString()}</span>
+              </li>
             ))}
           </ul>
         )}
       </section>
 
-      {/* MENSAJE */}
-      {mensaje && <div className="mensaje">{mensaje}</div>}
+      {mensaje && <div className="sd-mensaje">{mensaje}</div>}
 
-      {/* FOOTER */}
-      <footer className="footer">
-        <p>© 2026 Jabonsa - Todos los derechos reservados</p>
+      <footer className="sd-footer">
+        <p>© 2026 Savon d'Art — Maison Artisanale</p>
       </footer>
     </div>
   );
