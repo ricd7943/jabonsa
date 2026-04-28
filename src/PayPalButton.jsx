@@ -1,27 +1,30 @@
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 
-const CLIENT_ID = "Ab19yvkLv-4wloKedfocQDk6w_yg39fjBRIQQD3bawA8OWOHEnU8j8mWcxazYJSNln1vcKh6JcPjx01a";
+const CLIENT_ID = "AZ3xXQaRn9qEJMfnNLY1cWsDlbykALVRWqBl0wSzyWFnFh7I57lj97g2j-2yQt6Owyk1OhwU9mszLdM8";
+const API = "https://jabonsa.onrender.com";
 
 function PayPalButton({ total, onSuccess }) {
   return (
     <PayPalScriptProvider options={{ "client-id": CLIENT_ID, currency: "USD" }}>
       <PayPalButtons
         style={{ layout: "vertical", shape: "rect", color: "black" }}
-        createOrder={(data, actions) => {
-          return actions.order.create({
-            purchase_units: [{
-              amount: {
-                value: total.toFixed(2),
-                currency_code: "USD"
-              },
-              description: "Savon d'Art - Pedido"
-            }]
+        createOrder={async () => {
+          const res = await fetch(`${API}/paypal/crear-orden`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ total })
           });
+          const data = await res.json();
+          return data.id;
         }}
-        onApprove={(data, actions) => {
-          return actions.order.capture().then((details) => {
-            onSuccess(details);
+        onApprove={async (data) => {
+          const res = await fetch(`${API}/paypal/capturar-orden`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderID: data.orderID })
           });
+          const details = await res.json();
+          onSuccess(details);
         }}
         onError={(err) => {
           console.error("PayPal error:", err);
