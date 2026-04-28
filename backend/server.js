@@ -4,6 +4,7 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const cloudinary = require('cloudinary').v2;
 const multer = require('multer');
+const fetch = require('node-fetch');
 
 const app = express();
 app.use(cors({ origin: "*", methods: ["GET", "POST", "PUT", "DELETE"], allowedHeaders: ["Content-Type", "Authorization"] }));
@@ -98,6 +99,70 @@ app.post('/admin/subir-imagen', verificarAdmin, upload.single('imagen'), async (
   } catch (err) {
     console.error(err);
     res.status(500).json({ mensaje: 'Error al subir imagen' });
+  }
+});
+
+// ---- PAYPAL ----
+
+const PAYPAL_CLIENT_ID = process.env.PAYPAL_CLIENT_ID;
+const PAYPAL_CLIENT_SECRET = process.env.PAYPAL_CLIENT_SECRET;
+const PAYPAL_API = 'https://api-m.sandbox.paypal.com';
+
+const getPayPalToken = async () => {
+  const res = await fetch(`${PAYPAL_API}/v1/oauth2/token`, {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Basic ' + Buffer.from(`${PAYPAL_CLIENT_ID}:${PAYPAL_CLIENT_SECRET}`).toString('base64'),
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    body: 'grant_type=client_credentials'
+  });
+  const data = await res.json();
+  return data.access_token;
+};
+
+app.post('/paypal/crear-orden', async (req, res) => {
+  try {
+    const { total } = req.body;
+    const token = await getPayPalToken();
+    const response = await fetch(`${PAYPAL_API}/v2/checkout/orders`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        intent: 'CAPTURE',
+        purchase_units: [{
+          amount: { currency_code: 'USD', value: parseFloat(total).toFixed(2) },
+          description: "Savon d'Art - Pedido"
+        }]
+      })
+    });
+    const order = await response.json();
+    res.json({ id: order.id });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ mensaje: 'Error al crear orden PayPal' });
+  }
+});
+
+app.post('/paypal/capturar-orden', async (req, res) => {
+  try {
+    const { orderID } = req.body;
+    const token = await getPayPalToken();
+    const response = await fetch(`${PAYPAL_API}/v2/checkout/orders/${orderID}/capture`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    const data = await response.json();
+    res.json(data);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ mensaje: 'Error al capturar pago' });
   }
 });
 
