@@ -13,13 +13,25 @@ function Admin() {
   const [mensaje, setMensaje] = useState('');
   const [vista, setVista] = useState('productos');
 
-  const login = () => {
-    if (password.trim() === '') return;
+ const login = async () => {
+  if (password.trim() === '') return;
+  try {
+    const res = await fetch(`${API}/admin/productos`, {
+      headers: { 'Authorization': password }
+    });
+    if (res.status === 401) {
+      setMensaje('❌ Contraseña incorrecta');
+      setTimeout(() => setMensaje(''), 3000);
+      return;
+    }
+    const data = await res.json();
+    setProductos(data);
     setAutenticado(true);
-    cargarProductos();
     cargarCompras();
-  };
-
+  } catch (err) {
+    console.error(err);
+  }
+};
   const headers = { 'Content-Type': 'application/json', 'Authorization': password };
 
   const cargarProductos = async () => {
