@@ -4,7 +4,7 @@ import './Contacto.css';
 
 const SERVICE_ID = 'service_vtd6pr7';
 const TEMPLATE_ID = 'template_r8prc5m';
-const PUBLIC_KEY = 'xOGgrb9-0mnsvUWgSNIkJ';
+const PUBLIC_KEY = 'C6PrVYWg4jkQhTg3f';
 
 function Contacto() {
   const [form, setForm] = useState({ from_name: '', from_email: '', phone: '', message: '' });
