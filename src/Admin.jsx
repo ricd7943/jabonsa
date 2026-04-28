@@ -13,43 +13,52 @@ function Admin() {
   const [mensaje, setMensaje] = useState('');
   const [vista, setVista] = useState('productos');
 
- const login = async () => {
+const login = async () => {
   if (password.trim() === '') return;
   try {
     const res = await fetch(`${API}/admin/productos`, {
       headers: { 'Authorization': password }
     });
     if (res.status === 401) {
-      setMensaje('❌ Contraseña incorrecta');
-      setTimeout(() => setMensaje(''), 3000);
+      alert('Contraseña incorrecta');
       return;
     }
     const data = await res.json();
     setProductos(data);
     setAutenticado(true);
-    cargarCompras();
+    cargarCompras(password);
   } catch (err) {
+    alert('Error conectando al servidor, intenta de nuevo');
     console.error(err);
   }
 };
   const headers = { 'Content-Type': 'application/json', 'Authorization': password };
 
-  const cargarProductos = async () => {
-    try {
-      const res = await fetch(`${API}/admin/productos`, { headers: { 'Authorization': password } });
-      const data = await res.json();
-      setProductos(data);
-    } catch (err) { console.error(err); }
-  };
+  const cargarProductos = async (pass) => {
+  try {
+    const res = await fetch(`${API}/admin/productos`, { 
+      headers: { 'Authorization': pass || password } 
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+    setProductos(data);
+  } catch (err) { 
+    console.error(err); 
+  }
+};
 
-  const cargarCompras = async () => {
-    try {
-      const res = await fetch(`${API}/admin/compras`, { headers: { 'Authorization': password } });
-      const data = await res.json();
-      setCompras(data);
-    } catch (err) { console.error(err); }
-  };
-
+  const cargarCompras = async (pass) => {
+  try {
+    const res = await fetch(`${API}/admin/compras`, { 
+      headers: { 'Authorization': pass || password } 
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+    setCompras(data);
+  } catch (err) { 
+    console.error(err); 
+  }
+};
   const guardarProducto = async () => {
     if (!form.nombre || !form.precio) return setMensaje('❌ Nombre y precio son obligatorios');
     try {
