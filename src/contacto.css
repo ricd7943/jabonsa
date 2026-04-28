@@ -1,0 +1,38 @@
+.contacto-form {
+  max-width: 500px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.contacto-form input,
+.contacto-form textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 0.5px solid #d4c9b8;
+  background: #faf9f7;
+  font-size: 13px;
+  font-family: Georgia, serif;
+  outline: none;
+  color: #1a1a1a;
+}
+
+.contacto-form input:focus,
+.contacto-form textarea:focus {
+  border-color: #8a7f72;
+}
+
+.contacto-form textarea {
+  resize: vertical;
+}
+
+.contacto-form .sd-btn {
+  width: 100%;
+}
+
+.contacto-mensaje {
+  font-size: 13px;
+  text-align: center;
+  color: #5c4f3d;
+}

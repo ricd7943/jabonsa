@@ -1,5 +1,6 @@
 import './App.css';
 import { useState, useEffect } from 'react';
+import Contacto from './Contacto';
 
 function App() {
   const [mensaje, setMensaje] = useState('');
@@ -61,6 +62,7 @@ function App() {
           <a href="#collection">Collection</a>
           <a href="#esencia">L'Essence</a>
           <a href="#pedidos">Pedidos</a>
+          <a href="#contacto">Contact</a>
         </nav>
       </header>
 
@@ -149,6 +151,8 @@ function App() {
           </ul>
         )}
       </section>
+
+      <Contacto />
 
       {mensaje && <div className="sd-mensaje">{mensaje}</div>}
 
