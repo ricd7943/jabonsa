@@ -2,10 +2,23 @@ if (process.env.NODE_ENV !== 'production') require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
+const cloudinary = require('cloudinary').v2;
+const multer = require('multer');
 
 const app = express();
 app.use(cors({ origin: "*", methods: ["GET", "POST", "PUT", "DELETE"], allowedHeaders: ["Content-Type", "Authorization"] }));
 app.use(express.json());
+
+// Cloudinary config
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+// Multer en memoria
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 
 // Conexión a MongoDB
 mongoose.connect(process.env.MONGO_URI)
@@ -66,6 +79,25 @@ app.get('/compras', async (req, res) => {
     res.json(compras);
   } catch (err) {
     res.status(500).json({ mensaje: 'Error al obtener las compras' });
+  }
+});
+
+// ---- SUBIR IMAGEN ----
+
+app.post('/admin/subir-imagen', verificarAdmin, upload.single('imagen'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ mensaje: 'No se recibió imagen' });
+    const resultado = await new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        { folder: 'savon-dart' },
+        (error, result) => error ? reject(error) : resolve(result)
+      );
+      stream.end(req.file.buffer);
+    });
+    res.json({ url: resultado.secure_url });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ mensaje: 'Error al subir imagen' });
   }
 });
 
