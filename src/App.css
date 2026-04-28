@@ -36,7 +36,7 @@ body {
   letter-spacing: 2px;
 }
 
-.sd-nav { display: flex; gap: 2rem; }
+.sd-nav { display: flex; gap: 2rem; align-items: center; }
 
 .sd-nav a {
   font-size: 11px;
@@ -270,6 +270,7 @@ body {
   text-transform: uppercase;
   color: #8a7f72;
 }
+
 .carrito-btn {
   background: transparent;
   border: 0.5px solid #d4c9b8;
@@ -319,9 +320,7 @@ body {
   flex-direction: column;
 }
 
-.carrito-panel.abierto {
-  right: 0;
-}
+.carrito-panel.abierto { right: 0; }
 
 .carrito-header {
   display: flex;
@@ -381,15 +380,8 @@ body {
   gap: 0.25rem;
 }
 
-.carrito-item-info strong {
-  font-size: 13px;
-  font-weight: 500;
-}
-
-.carrito-item-info span {
-  font-size: 12px;
-  color: #8a7f72;
-}
+.carrito-item-info strong { font-size: 13px; font-weight: 500; }
+.carrito-item-info span { font-size: 12px; color: #8a7f72; }
 
 .carrito-item-qty {
   display: flex;
@@ -433,9 +425,8 @@ body {
   width: 100%;
   text-align: center;
 }
-.paypal-wrap {
-  margin-top: 1rem;
-}
+
+.paypal-wrap { margin-top: 1rem; }
 
 .btn-cancelar-pago {
   width: 100%;
@@ -448,4 +439,99 @@ body {
   cursor: pointer;
   color: #8a7f72;
   text-transform: uppercase;
+}
+
+/* ============ RESPONSIVE MÓVIL ============ */
+
+@media (max-width: 768px) {
+
+  .sd-header {
+    padding: 1rem 1.2rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .sd-logo { font-size: 16px; letter-spacing: 2px; }
+
+  .sd-nav {
+    gap: 0.8rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .sd-nav a { font-size: 10px; letter-spacing: 1px; }
+
+  .sd-hero {
+    padding: 3rem 1.5rem;
+  }
+
+  .sd-hero h1 { font-size: 28px; }
+
+  .sd-hero p { font-size: 13px; }
+
+  .sd-btn {
+    padding: 0.8rem 2rem;
+    font-size: 10px;
+  }
+
+  .sd-section { padding: 2.5rem 1.2rem; }
+
+  .sd-cards {
+    grid-template-columns: 1fr;
+    max-width: 100%;
+  }
+
+  .sd-features {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    max-width: 100%;
+  }
+
+  .sd-feature p { font-size: 9px; }
+
+  .sd-pedidos li {
+    flex-direction: column;
+    gap: 0.25rem;
+    font-size: 12px;
+  }
+
+  .sd-mensaje {
+    bottom: 1rem;
+    right: 1rem;
+    left: 1rem;
+    text-align: center;
+    font-size: 12px;
+  }
+
+  .carrito-panel {
+    width: 100%;
+    right: -100%;
+  }
+
+  .carrito-panel.abierto { right: 0; }
+
+  .sd-section-title h2 { font-size: 22px; }
+}
+
+@media (max-width: 480px) {
+
+  .sd-header { padding: 0.8rem 1rem; }
+
+  .sd-logo { font-size: 14px; letter-spacing: 1px; }
+
+  .sd-nav { gap: 0.5rem; }
+
+  .sd-nav a { display: none; }
+
+  .carrito-btn { font-size: 16px; }
+
+  .sd-hero { padding: 2.5rem 1rem; }
+
+  .sd-hero h1 { font-size: 24px; }
+
+  .sd-section { padding: 2rem 1rem; }
+
+  .sd-features { grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+
+  .sd-feature-icon { width: 36px; height: 36px; font-size: 14px; }
 }
