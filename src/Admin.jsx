@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import './Admin.css';
 
 const API = "https://jabonsa.onrender.com";
@@ -12,6 +12,7 @@ function Admin() {
   const [editando, setEditando] = useState(null);
   const [mensaje, setMensaje] = useState('');
   const [vista, setVista] = useState('productos');
+  const [subiendo, setSubiendo] = useState(false);
 
   const login = async () => {
     if (password.trim() === '') return;
@@ -59,6 +60,29 @@ function Admin() {
     } catch (err) {
       console.error(err);
     }
+  };
+
+  const subirImagen = async (archivo) => {
+    setSubiendo(true);
+    try {
+      const formData = new FormData();
+      formData.append('imagen', archivo);
+      const res = await fetch(`${API}/admin/subir-imagen`, {
+        method: 'POST',
+        headers: { 'Authorization': password },
+        body: formData
+      });
+      const data = await res.json();
+      if (data.url) {
+        setForm(f => ({ ...f, imagen: data.url }));
+        setMensaje('✅ Imagen subida correctamente');
+        setTimeout(() => setMensaje(''), 3000);
+      }
+    } catch (err) {
+      setMensaje('❌ Error al subir imagen');
+      console.error(err);
+    }
+    setSubiendo(false);
   };
 
   const guardarProducto = async () => {
@@ -132,9 +156,24 @@ function Admin() {
             <input placeholder="Descripción" value={form.descripcion} onChange={e => setForm({ ...form, descripcion: e.target.value })} />
             <input placeholder="Precio (ej: $12.00 USD)" value={form.precio} onChange={e => setForm({ ...form, precio: e.target.value })} />
             <input placeholder="URL de imagen (opcional)" value={form.imagen} onChange={e => setForm({ ...form, imagen: e.target.value })} />
+
+            <div className="admin-upload">
+              <label className="btn-upload">
+                {subiendo ? 'Subiendo...' : '📁 Subir imagen desde computador'}
+                <input
+                  type="file"
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  onChange={e => e.target.files[0] && subirImagen(e.target.files[0])}
+                  disabled={subiendo}
+                />
+              </label>
+            </div>
+
             {form.imagen && (
               <img src={form.imagen} alt="preview" style={{ width: '100%', height: '120px', objectFit: 'cover', marginBottom: '0.75rem', border: '0.5px solid #d4c9b8' }} />
             )}
+
             <div className="admin-form-btns">
               <button className="btn-guardar" onClick={guardarProducto}>{editando ? 'Actualizar' : 'Agregar Producto'}</button>
               {editando && <button className="btn-cancelar" onClick={() => { setEditando(null); setForm({ nombre: '', descripcion: '', precio: '', emoji: '', imagen: '' }); }}>Cancelar</button>}
