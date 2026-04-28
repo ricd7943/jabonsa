@@ -6,23 +6,57 @@ function App() {
   const [mensaje, setMensaje] = useState('');
   const [compras, setCompras] = useState([]);
   const [productos, setProductos] = useState([]);
+  const [carrito, setCarrito] = useState([]);
+  const [carritoAbierto, setCarritoAbierto] = useState(false);
 
   const API = "https://jabonsa.onrender.com";
 
-  const comprar = async (producto) => {
+  const agregarAlCarrito = (prod) => {
+    setCarrito(prev => {
+      const existe = prev.find(i => i._id === prod._id);
+      if (existe) {
+        return prev.map(i => i._id === prod._id ? { ...i, cantidad: i.cantidad + 1 } : i);
+      }
+      return [...prev, { ...prod, cantidad: 1 }];
+    });
+    setMensaje(`✅ ${prod.nombre} agregado al carrito`);
+    setTimeout(() => setMensaje(''), 2000);
+  };
+
+  const cambiarCantidad = (id, delta) => {
+    setCarrito(prev => {
+      return prev.map(i => i._id === id ? { ...i, cantidad: i.cantidad + delta } : i)
+                 .filter(i => i.cantidad > 0);
+    });
+  };
+
+  const totalCarrito = carrito.reduce((acc, i) => {
+    const precio = parseFloat(i.precio.replace(/[^0-9.]/g, ''));
+    return acc + (precio * i.cantidad);
+  }, 0);
+
+  const totalItems = carrito.reduce((acc, i) => acc + i.cantidad, 0);
+
+  const confirmarPedido = async () => {
+    if (carrito.length === 0) return;
     try {
-      const res = await fetch(`${API}/comprar`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ producto })
-      });
-      const data = await res.json();
-      setMensaje(`✅ ${data.producto} - ${data.mensaje}`);
+      for (const item of carrito) {
+        for (let i = 0; i < item.cantidad; i++) {
+          await fetch(`${API}/comprar`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ producto: item.nombre })
+          });
+        }
+      }
+      setMensaje('🎉 ¡Pedido confirmado! Gracias por tu compra.');
+      setCarrito([]);
+      setCarritoAbierto(false);
       fetchCompras();
-      setTimeout(() => setMensaje(''), 3000);
+      setTimeout(() => setMensaje(''), 4000);
     } catch (err) {
       console.error(err);
-      setMensaje('❌ Error al comprar');
+      setMensaje('❌ Error al confirmar pedido');
     }
   };
 
@@ -53,6 +87,53 @@ function App() {
 
   return (
     <div className="sd-wrap">
+
+      {/* CARRITO PANEL */}
+      {carritoAbierto && (
+        <div className="carrito-overlay" onClick={() => setCarritoAbierto(false)} />
+      )}
+      <div className={`carrito-panel ${carritoAbierto ? 'abierto' : ''}`}>
+        <div className="carrito-header">
+          <h2>Mon Panier</h2>
+          <button onClick={() => setCarritoAbierto(false)}>✕</button>
+        </div>
+        {carrito.length === 0 ? (
+          <p className="carrito-vacio">Tu carrito está vacío</p>
+        ) : (
+          <>
+            <div className="carrito-items">
+              {carrito.map(item => (
+                <div className="carrito-item" key={item._id}>
+                  {item.imagen ? (
+                    <img src={item.imagen} alt={item.nombre} />
+                  ) : (
+                    <span style={{ fontSize: '24px' }}>{item.emoji}</span>
+                  )}
+                  <div className="carrito-item-info">
+                    <strong>{item.nombre}</strong>
+                    <span>{item.precio}</span>
+                  </div>
+                  <div className="carrito-item-qty">
+                    <button onClick={() => cambiarCantidad(item._id, -1)}>−</button>
+                    <span>{item.cantidad}</span>
+                    <button onClick={() => cambiarCantidad(item._id, 1)}>+</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="carrito-footer">
+              <div className="carrito-total">
+                <span>Total</span>
+                <span>${totalCarrito.toFixed(2)} USD</span>
+              </div>
+              <button className="sd-btn carrito-confirmar" onClick={confirmarPedido}>
+                Confirmar Pedido
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+
       <header className="sd-header">
         <div className="sd-logo">
           Savon d'Art
@@ -63,6 +144,9 @@ function App() {
           <a href="#esencia">L'Essence</a>
           <a href="#pedidos">Pedidos</a>
           <a href="#contacto">Contact</a>
+          <button className="carrito-btn" onClick={() => setCarritoAbierto(true)}>
+            🛒 {totalItems > 0 && <span className="carrito-badge">{totalItems}</span>}
+          </button>
         </nav>
       </header>
 
@@ -101,8 +185,8 @@ function App() {
                 <h3>{prod.nombre}</h3>
                 <p>{prod.descripcion}</p>
                 <p className="sd-card-price">{prod.precio}</p>
-                <button className="sd-card-btn" onClick={() => comprar(prod.nombre)}>
-                  Añadir al pedido
+                <button className="sd-card-btn" onClick={() => agregarAlCarrito(prod)}>
+                  🛒 Añadir al carrito
                 </button>
               </div>
             ))
