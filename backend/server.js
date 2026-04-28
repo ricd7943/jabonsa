@@ -25,6 +25,7 @@ const ProductoSchema = new mongoose.Schema({
   descripcion: String,
   precio: String,
   emoji: String,
+  imagen: String,
   activo: { type: Boolean, default: true }
 });
 const Producto = mongoose.model('Producto', ProductoSchema);
