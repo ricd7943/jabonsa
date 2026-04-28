@@ -8,64 +8,66 @@ function Admin() {
   const [password, setPassword] = useState('');
   const [productos, setProductos] = useState([]);
   const [compras, setCompras] = useState([]);
-  const [form, setForm] = useState({ nombre: '', descripcion: '', precio: '', emoji: '' });
+  const [form, setForm] = useState({ nombre: '', descripcion: '', precio: '', emoji: '', imagen: '' });
   const [editando, setEditando] = useState(null);
   const [mensaje, setMensaje] = useState('');
   const [vista, setVista] = useState('productos');
 
-const login = async () => {
-  if (password.trim() === '') return;
-  try {
-    const res = await fetch(`${API}/admin/productos`, {
-      headers: { 'Authorization': password }
-    });
-    if (res.status === 401) {
-      alert('Contraseña incorrecta');
-      return;
+  const login = async () => {
+    if (password.trim() === '') return;
+    try {
+      const res = await fetch(`${API}/admin/productos`, {
+        headers: { 'Authorization': password }
+      });
+      if (res.status === 401) {
+        alert('Contraseña incorrecta');
+        return;
+      }
+      const data = await res.json();
+      setProductos(data);
+      setAutenticado(true);
+      cargarCompras(password);
+    } catch (err) {
+      alert('Error conectando al servidor, intenta de nuevo');
+      console.error(err);
     }
-    const data = await res.json();
-    setProductos(data);
-    setAutenticado(true);
-    cargarCompras(password);
-  } catch (err) {
-    alert('Error conectando al servidor, intenta de nuevo');
-    console.error(err);
-  }
-};
+  };
+
   const headers = { 'Content-Type': 'application/json', 'Authorization': password };
 
   const cargarProductos = async (pass) => {
-  try {
-    const res = await fetch(`${API}/admin/productos`, { 
-      headers: { 'Authorization': pass || password } 
-    });
-    if (!res.ok) return;
-    const data = await res.json();
-    setProductos(data);
-  } catch (err) { 
-    console.error(err); 
-  }
-};
+    try {
+      const res = await fetch(`${API}/admin/productos`, {
+        headers: { 'Authorization': pass || password }
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      setProductos(data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const cargarCompras = async (pass) => {
-  try {
-    const res = await fetch(`${API}/admin/compras`, { 
-      headers: { 'Authorization': pass || password } 
-    });
-    if (!res.ok) return;
-    const data = await res.json();
-    setCompras(data);
-  } catch (err) { 
-    console.error(err); 
-  }
-};
+    try {
+      const res = await fetch(`${API}/admin/compras`, {
+        headers: { 'Authorization': pass || password }
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      setCompras(data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const guardarProducto = async () => {
     if (!form.nombre || !form.precio) return setMensaje('❌ Nombre y precio son obligatorios');
     try {
       const url = editando ? `${API}/admin/productos/${editando}` : `${API}/admin/productos`;
       const method = editando ? 'PUT' : 'POST';
       await fetch(url, { method, headers, body: JSON.stringify(form) });
-      setForm({ nombre: '', descripcion: '', precio: '', emoji: '' });
+      setForm({ nombre: '', descripcion: '', precio: '', emoji: '', imagen: '' });
       setEditando(null);
       setMensaje('✅ Producto guardado');
       cargarProductos();
@@ -84,7 +86,7 @@ const login = async () => {
   };
 
   const editarProducto = (prod) => {
-    setForm({ nombre: prod.nombre, descripcion: prod.descripcion, precio: prod.precio, emoji: prod.emoji });
+    setForm({ nombre: prod.nombre, descripcion: prod.descripcion, precio: prod.precio, emoji: prod.emoji, imagen: prod.imagen || '' });
     setEditando(prod._id);
     setVista('productos');
   };
@@ -129,9 +131,13 @@ const login = async () => {
             <input placeholder="Nombre del producto" value={form.nombre} onChange={e => setForm({ ...form, nombre: e.target.value })} />
             <input placeholder="Descripción" value={form.descripcion} onChange={e => setForm({ ...form, descripcion: e.target.value })} />
             <input placeholder="Precio (ej: $12.00 USD)" value={form.precio} onChange={e => setForm({ ...form, precio: e.target.value })} />
+            <input placeholder="URL de imagen (opcional)" value={form.imagen} onChange={e => setForm({ ...form, imagen: e.target.value })} />
+            {form.imagen && (
+              <img src={form.imagen} alt="preview" style={{ width: '100%', height: '120px', objectFit: 'cover', marginBottom: '0.75rem', border: '0.5px solid #d4c9b8' }} />
+            )}
             <div className="admin-form-btns">
               <button className="btn-guardar" onClick={guardarProducto}>{editando ? 'Actualizar' : 'Agregar Producto'}</button>
-              {editando && <button className="btn-cancelar" onClick={() => { setEditando(null); setForm({ nombre: '', descripcion: '', precio: '', emoji: '' }); }}>Cancelar</button>}
+              {editando && <button className="btn-cancelar" onClick={() => { setEditando(null); setForm({ nombre: '', descripcion: '', precio: '', emoji: '', imagen: '' }); }}>Cancelar</button>}
             </div>
           </div>
 
@@ -139,7 +145,11 @@ const login = async () => {
             <h2>Productos ({productos.length})</h2>
             {productos.length === 0 ? <p>No hay productos aún.</p> : productos.map(p => (
               <div className="admin-item" key={p._id}>
-                <span className="admin-item-emoji">{p.emoji}</span>
+                {p.imagen ? (
+                  <img src={p.imagen} alt={p.nombre} style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '4px' }} />
+                ) : (
+                  <span className="admin-item-emoji">{p.emoji}</span>
+                )}
                 <div className="admin-item-info">
                   <strong>{p.nombre}</strong>
                   <span>{p.descripcion}</span>

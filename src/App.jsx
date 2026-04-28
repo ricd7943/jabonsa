@@ -87,7 +87,15 @@ function App() {
           ) : (
             productos.map(prod => (
               <div className="sd-card" key={prod._id}>
-                <div className="sd-card-icon">{prod.emoji}</div>
+                {prod.imagen ? (
+                  <img
+                    src={prod.imagen}
+                    alt={prod.nombre}
+                    style={{ width: '100%', height: '180px', objectFit: 'cover', marginBottom: '1rem', borderBottom: '0.5px solid #d4c9b8' }}
+                  />
+                ) : (
+                  <div className="sd-card-icon">{prod.emoji}</div>
+                )}
                 <h3>{prod.nombre}</h3>
                 <p>{prod.descripcion}</p>
                 <p className="sd-card-price">{prod.precio}</p>
