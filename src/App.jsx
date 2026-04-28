@@ -1,6 +1,7 @@
 import './App.css';
 import { useState, useEffect } from 'react';
 import Contacto from './Contacto';
+import PayPalButton from './PayPalButton';
 
 function App() {
   const [mensaje, setMensaje] = useState('');
@@ -8,6 +9,7 @@ function App() {
   const [productos, setProductos] = useState([]);
   const [carrito, setCarrito] = useState([]);
   const [carritoAbierto, setCarritoAbierto] = useState(false);
+  const [pagando, setPagando] = useState(false);
 
   const API = "https://jabonsa.onrender.com";
 
@@ -37,26 +39,30 @@ function App() {
 
   const totalItems = carrito.reduce((acc, i) => acc + i.cantidad, 0);
 
-  const confirmarPedido = async () => {
-    if (carrito.length === 0) return;
-    try {
-      for (const item of carrito) {
-        for (let i = 0; i < item.cantidad; i++) {
-          await fetch(`${API}/comprar`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ producto: item.nombre })
-          });
-        }
+  const guardarPedidoEnDB = async () => {
+    for (const item of carrito) {
+      for (let i = 0; i < item.cantidad; i++) {
+        await fetch(`${API}/comprar`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ producto: item.nombre })
+        });
       }
-      setMensaje('🎉 ¡Pedido confirmado! Gracias por tu compra.');
+    }
+  };
+
+  const onPagoExitoso = async (details) => {
+    try {
+      await guardarPedidoEnDB();
+      setMensaje(`🎉 ¡Pago exitoso! Gracias ${details.payer.name.given_name} por tu compra.`);
       setCarrito([]);
       setCarritoAbierto(false);
+      setPagando(false);
       fetchCompras();
-      setTimeout(() => setMensaje(''), 4000);
+      setTimeout(() => setMensaje(''), 5000);
     } catch (err) {
       console.error(err);
-      setMensaje('❌ Error al confirmar pedido');
+      setMensaje('❌ Error al guardar pedido');
     }
   };
 
@@ -88,14 +94,13 @@ function App() {
   return (
     <div className="sd-wrap">
 
-      {/* CARRITO PANEL */}
       {carritoAbierto && (
-        <div className="carrito-overlay" onClick={() => setCarritoAbierto(false)} />
+        <div className="carrito-overlay" onClick={() => { setCarritoAbierto(false); setPagando(false); }} />
       )}
       <div className={`carrito-panel ${carritoAbierto ? 'abierto' : ''}`}>
         <div className="carrito-header">
           <h2>Mon Panier</h2>
-          <button onClick={() => setCarritoAbierto(false)}>✕</button>
+          <button onClick={() => { setCarritoAbierto(false); setPagando(false); }}>✕</button>
         </div>
         {carrito.length === 0 ? (
           <p className="carrito-vacio">Tu carrito está vacío</p>
@@ -126,9 +131,21 @@ function App() {
                 <span>Total</span>
                 <span>${totalCarrito.toFixed(2)} USD</span>
               </div>
-              <button className="sd-btn carrito-confirmar" onClick={confirmarPedido}>
-                Confirmar Pedido
-              </button>
+              {!pagando ? (
+                <button className="sd-btn carrito-confirmar" onClick={() => setPagando(true)}>
+                  Proceder al Pago
+                </button>
+              ) : (
+                <div className="paypal-wrap">
+                  <p style={{ fontSize: '12px', color: '#8a7f72', textAlign: 'center', marginBottom: '1rem', letterSpacing: '1px' }}>
+                    PAGO SEGURO CON PAYPAL
+                  </p>
+                  <PayPalButton total={totalCarrito} onSuccess={onPagoExitoso} />
+                  <button className="btn-cancelar-pago" onClick={() => setPagando(false)}>
+                    ← Volver al carrito
+                  </button>
+                </div>
+              )}
             </div>
           </>
         )}

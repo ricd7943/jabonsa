@@ -433,3 +433,19 @@ body {
   width: 100%;
   text-align: center;
 }
+.paypal-wrap {
+  margin-top: 1rem;
+}
+
+.btn-cancelar-pago {
+  width: 100%;
+  margin-top: 0.75rem;
+  padding: 0.6rem;
+  background: transparent;
+  border: 0.5px solid #d4c9b8;
+  font-size: 11px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  color: #8a7f72;
+  text-transform: uppercase;
+}

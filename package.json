@@ -5,6 +5,7 @@
   "type": "module",
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
+    "@paypal/react-paypal-js": "^9.2.0",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^14.4.3",
