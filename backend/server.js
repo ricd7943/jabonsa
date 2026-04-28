@@ -104,9 +104,9 @@ app.post('/admin/subir-imagen', verificarAdmin, upload.single('imagen'), async (
 
 // ---- PAYPAL ----
 
-const PAYPAL_CLIENT_ID = process.env.PAYPAL_CLIENT_ID;
-const PAYPAL_CLIENT_SECRET = process.env.PAYPAL_CLIENT_SECRET;
-const PAYPAL_API = 'https://api-m.sandbox.paypal.com';
+const PAYPAL_CLIENT_ID = process.env.PAYPAL_CLIENT_ID_LIVE;
+const PAYPAL_CLIENT_SECRET = process.env.PAYPAL_CLIENT_SECRET_LIVE;
+const PAYPAL_API = 'https://api-m.paypal.com'; // Sin sandbox
 
 const getPayPalToken = async () => {
   const res = await fetch(`${PAYPAL_API}/v1/oauth2/token`, {
