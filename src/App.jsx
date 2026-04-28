@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 function App() {
   const [mensaje, setMensaje] = useState('');
   const [compras, setCompras] = useState([]);
+  const [productos, setProductos] = useState([]);
 
   const API = "https://jabonsa.onrender.com";
 
@@ -34,15 +35,20 @@ function App() {
     }
   };
 
+  const fetchProductos = async () => {
+    try {
+      const res = await fetch(`${API}/productos`);
+      const data = await res.json();
+      setProductos(data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   useEffect(() => {
     fetchCompras();
+    fetchProductos();
   }, []);
-
-  const productos = [
-    { id: 'rose', nombre: 'Rose de Luxe', desc: 'Jabón en forma de corazón con esencia de rosa natural', precio: '$12.00 USD', emoji: '🌹' },
-    { id: 'grappe', nombre: "Grappe d'Or", desc: 'Ramo de uvas para colgar, hidratación en cada lavado', precio: '$18.00 USD', emoji: '🍇' },
-    { id: 'fleur', nombre: 'Fleur Douce', desc: 'Colección floral con aceites esenciales de lavanda', precio: '$15.00 USD', emoji: '🌸' },
-  ];
 
   return (
     <div className="sd-wrap">
@@ -74,17 +80,23 @@ function App() {
           <div className="sd-divider"></div>
         </div>
         <div className="sd-cards">
-          {productos.map(prod => (
-            <div className="sd-card" key={prod.id}>
-              <div className="sd-card-icon">{prod.emoji}</div>
-              <h3>{prod.nombre}</h3>
-              <p>{prod.desc}</p>
-              <p className="sd-card-price">{prod.precio}</p>
-              <button className="sd-card-btn" onClick={() => comprar(prod.nombre)}>
-                Añadir al pedido
-              </button>
-            </div>
-          ))}
+          {productos.length === 0 ? (
+            <p style={{ textAlign: 'center', color: '#8a7f72', fontSize: '14px', gridColumn: '1/-1' }}>
+              Cargando productos...
+            </p>
+          ) : (
+            productos.map(prod => (
+              <div className="sd-card" key={prod._id}>
+                <div className="sd-card-icon">{prod.emoji}</div>
+                <h3>{prod.nombre}</h3>
+                <p>{prod.descripcion}</p>
+                <p className="sd-card-price">{prod.precio}</p>
+                <button className="sd-card-btn" onClick={() => comprar(prod.nombre)}>
+                  Añadir al pedido
+                </button>
+              </div>
+            ))
+          )}
         </div>
       </section>
 
@@ -117,7 +129,7 @@ function App() {
           <div className="sd-divider"></div>
         </div>
         {compras.length === 0 ? (
-          <p style={{ textAlign: 'center', color: 'var(--color-text-secondary)', fontSize: '14px' }}>No hay pedidos aún.</p>
+          <p style={{ textAlign: 'center', color: '#8a7f72', fontSize: '14px' }}>No hay pedidos aún.</p>
         ) : (
           <ul className="sd-pedidos">
             {compras.map(c => (
