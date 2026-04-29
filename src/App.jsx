@@ -12,8 +12,19 @@ function App() {
   const [pagando, setPagando] = useState(false);
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
   const [busqueda, setBusqueda] = useState('');
+  const [categoriaActiva, setCategoriaActiva] = useState('todos');
+  const [newsletter, setNewsletter] = useState('');
+  const [newsletterOk, setNewsletterOk] = useState(false);
 
   const API = "https://jabonsa.onrender.com";
+
+  const categorias = [
+    { id: 'todos', nombre: 'Todos', emoji: '✨' },
+    { id: 'rosa', nombre: 'Rosa', emoji: '🌹' },
+    { id: 'uva', nombre: 'Uva', emoji: '🍇' },
+    { id: 'floral', nombre: 'Floral', emoji: '🌸' },
+    { id: 'regalo', nombre: 'Regalo', emoji: '🎁' },
+  ];
 
   const agregarAlCarrito = (prod) => {
     setCarrito(prev => {
@@ -83,10 +94,28 @@ function App() {
     fetchProductos();
   }, []);
 
-  const productosFiltrados = productos.filter(p =>
-    p.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
-    p.descripcion.toLowerCase().includes(busqueda.toLowerCase())
-  );
+  const productosFiltrados = productos.filter(p => {
+    const coincideBusqueda = p.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
+      p.descripcion.toLowerCase().includes(busqueda.toLowerCase());
+    const coincideCategoria = categoriaActiva === 'todos' ||
+      p.nombre.toLowerCase().includes(categoriaActiva) ||
+      p.descripcion.toLowerCase().includes(categoriaActiva);
+    return coincideBusqueda && coincideCategoria;
+  });
+
+  const handleNewsletter = (e) => {
+    e.preventDefault();
+    if (newsletter.includes('@')) {
+      setNewsletterOk(true);
+      setNewsletter('');
+    }
+  };
+
+  const blogPosts = [
+    { id: 1, emoji: '🌿', titulo: '5 beneficios de los jabones naturales para tu piel', fecha: 'Abril 2026', desc: 'Descubre por qué los jabones artesanales son superiores a los industriales y cómo transforman el cuidado de tu piel.', tag: 'Bienestar' },
+    { id: 2, emoji: '🌹', titulo: 'Rosa mosqueta: el secreto de la piel radiante', fecha: 'Marzo 2026', desc: 'Conoce las propiedades extraordinarias de la rosa mosqueta y cómo nuestros jabones aprovechan todo su potencial.', tag: 'Ingredientes' },
+    { id: 3, emoji: '🎁', titulo: 'Ideas de regalo perfectas para bodas y eventos', fecha: 'Marzo 2026', desc: 'Los jabones artesanales son el regalo más original y memorable para bodas, baby showers y eventos corporativos.', tag: 'Regalos' },
+  ];
 
   return (
     <div className="sd-wrap">
@@ -176,11 +205,11 @@ function App() {
 
       {/* TOP BAR */}
       <div className="top-bar">
-        <span>🌿 Envío gratis en pedidos sobre $30</span>
+        <span>🌸 Envío gratis en pedidos sobre $30</span>
         <span>✦</span>
         <span>Jabones artesanales 100% naturales</span>
         <span>✦</span>
-        <span>📞 Pedidos especiales por WhatsApp</span>
+        <span>💌 Pedidos especiales por WhatsApp</span>
       </div>
 
       {/* HEADER */}
@@ -204,7 +233,7 @@ function App() {
         <nav className="sd-nav">
           <a href="#collection">Tienda</a>
           <a href="#categorias">Categorías</a>
-          <a href="#esencia">Nosotros</a>
+          <a href="#blog">Blog</a>
           <a href="#contacto">Contacto</a>
           <button className="carrito-btn" onClick={() => setCarritoAbierto(true)}>
             🛒 {totalItems > 0 && <span className="carrito-badge">{totalItems}</span>}
@@ -246,22 +275,27 @@ function App() {
       {/* CATEGORÍAS */}
       <section className="categorias-section" id="categorias">
         <div className="categorias-grid">
-          <div className="categoria-card">
+          <div className="categoria-card" onClick={() => setCategoriaActiva('todos')}>
+            <div className="categoria-icon">✨</div>
+            <h3>Todos</h3>
+            <p>Ver todo</p>
+          </div>
+          <div className="categoria-card" onClick={() => setCategoriaActiva('rosa')}>
             <div className="categoria-icon">🌹</div>
             <h3>Jabones de Rosa</h3>
             <p>Hidratación profunda</p>
           </div>
-          <div className="categoria-card">
+          <div className="categoria-card" onClick={() => setCategoriaActiva('uva')}>
             <div className="categoria-icon">🍇</div>
             <h3>Jabones de Uva</h3>
             <p>Antioxidante natural</p>
           </div>
-          <div className="categoria-card">
+          <div className="categoria-card" onClick={() => setCategoriaActiva('floral')}>
             <div className="categoria-icon">🌸</div>
             <h3>Jabones Florales</h3>
             <p>Aroma delicado</p>
           </div>
-          <div className="categoria-card">
+          <div className="categoria-card" onClick={() => setCategoriaActiva('regalo')}>
             <div className="categoria-icon">🎁</div>
             <h3>Sets de Regalo</h3>
             <p>Para ocasiones especiales</p>
@@ -277,6 +311,20 @@ function App() {
           <div className="sd-divider"></div>
           <p className="section-subtitle">Cada jabón es una obra de arte elaborada con los mejores ingredientes naturales</p>
         </div>
+
+        {/* FILTROS */}
+        <div className="filtros-wrap">
+          {categorias.map(cat => (
+            <button
+              key={cat.id}
+              className={`filtro-btn ${categoriaActiva === cat.id ? 'activo' : ''}`}
+              onClick={() => setCategoriaActiva(cat.id)}
+            >
+              {cat.emoji} {cat.nombre}
+            </button>
+          ))}
+        </div>
+
         <div className="sd-cards">
           {productosFiltrados.length === 0 ? (
             <p style={{ textAlign: 'center', color: '#8a7f72', fontSize: '14px', gridColumn: '1/-1', padding: '3rem' }}>
@@ -318,7 +366,7 @@ function App() {
             <span className="banner-promo-tag">Oferta Especial</span>
             <h2>Sets de Regalo Artesanales</h2>
             <p>Bandejas decoradas con moños dorados y jabones premium — perfectas para bodas, spas y eventos corporativos</p>
-            <button className="btn-primary" onClick={() => document.getElementById('contacto').scrollIntoView({ behavior: 'smooth' })}>
+            <button className="btn-primary-light" onClick={() => document.getElementById('contacto').scrollIntoView({ behavior: 'smooth' })}>
               Solicitar Cotización →
             </button>
           </div>
@@ -394,6 +442,64 @@ function App() {
         </div>
       </section>
 
+      {/* BLOG */}
+      <section className="sd-section blog-section" id="blog">
+        <div className="sd-section-title">
+          <span className="section-tag">Tips & Bienestar</span>
+          <h2>Nuestro Blog</h2>
+          <div className="sd-divider"></div>
+          <p className="section-subtitle">Consejos de bienestar, ingredientes naturales y más</p>
+        </div>
+        <div className="blog-grid">
+          {blogPosts.map(post => (
+            <div className="blog-card" key={post.id}>
+              <div className="blog-card-img">
+                <span style={{ fontSize: '48px' }}>{post.emoji}</span>
+              </div>
+              <div className="blog-card-body">
+                <div className="blog-card-meta">
+                  <span className="blog-tag">{post.tag}</span>
+                  <span className="blog-fecha">{post.fecha}</span>
+                </div>
+                <h3>{post.titulo}</h3>
+                <p>{post.desc}</p>
+                <button className="blog-leer" onClick={() => document.getElementById('contacto').scrollIntoView({ behavior: 'smooth' })}>
+                  Leer más →
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* NEWSLETTER */}
+      <section className="newsletter-section">
+        <div className="newsletter-content">
+          <div className="newsletter-texto">
+            <span className="section-tag">¡Únete a nuestra comunidad!</span>
+            <h2>Suscríbete al Newsletter</h2>
+            <p>Recibe tips de bienestar, descuentos exclusivos y novedades de Savon d'Art directamente en tu correo.</p>
+          </div>
+          {newsletterOk ? (
+            <div className="newsletter-ok">
+              <span style={{ fontSize: '32px' }}>🎉</span>
+              <p>¡Gracias por suscribirte! Pronto recibirás novedades.</p>
+            </div>
+          ) : (
+            <form className="newsletter-form" onSubmit={handleNewsletter}>
+              <input
+                type="email"
+                placeholder="Tu correo electrónico"
+                value={newsletter}
+                onChange={e => setNewsletter(e.target.value)}
+                required
+              />
+              <button type="submit" className="btn-primary">Suscribirme →</button>
+            </form>
+          )}
+        </div>
+      </section>
+
       {/* PEDIDOS */}
       <section className="sd-section sd-dark" id="pedidos">
         <div className="sd-section-title">
@@ -442,7 +548,7 @@ function App() {
           <div className="footer-col">
             <h4>Información</h4>
             <a href="#esencia">Sobre nosotros</a>
-            <a href="#contacto">Contacto</a>
+            <a href="#blog">Blog</a>
             <a href="#esencia">Ingredientes</a>
             <a href="#contacto">Envíos y devoluciones</a>
           </div>
