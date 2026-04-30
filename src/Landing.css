@@ -1,0 +1,172 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+.landing-wrap { width: 100%; height: 100vh; overflow: hidden; }
+
+.landing-hero {
+  width: 100%;
+  height: 100vh;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.landing-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(61, 43, 31, 0.75) 0%,
+    rgba(201, 122, 138, 0.5) 50%,
+    rgba(91, 164, 200, 0.4) 100%
+  );
+}
+
+.landing-content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  color: white;
+  max-width: 700px;
+  padding: 2rem;
+  animation: fadeUp 1.2s ease forwards;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.landing-badge {
+  display: inline-block;
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.3);
+  color: white;
+  font-size: 11px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  padding: 0.5rem 1.5rem;
+  border-radius: 25px;
+  margin-bottom: 2rem;
+  font-family: Georgia, serif;
+  backdrop-filter: blur(4px);
+}
+
+.landing-content h1 {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 72px;
+  font-weight: 400;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  line-height: 1.1;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 2px 20px rgba(0,0,0,0.3);
+}
+
+.landing-content h1 em {
+  display: block;
+  font-style: italic;
+  font-weight: 300;
+  font-size: 28px;
+  letter-spacing: 6px;
+  color: rgba(255,255,255,0.85);
+  text-transform: none;
+  margin-top: 0.25rem;
+}
+
+.landing-content p {
+  font-family: Georgia, serif;
+  font-size: 16px;
+  color: rgba(255,255,255,0.85);
+  line-height: 1.9;
+  margin: 1.5rem auto 2rem;
+  max-width: 500px;
+}
+
+.landing-stats {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 2rem;
+  margin-bottom: 2.5rem;
+}
+
+.landing-stat { text-align: center; }
+.landing-stat strong { display: block; font-size: 20px; font-weight: 400; color: white; font-family: Georgia, serif; }
+.landing-stat span { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.65); }
+.landing-stat-divider { width: 1px; height: 40px; background: rgba(255,255,255,0.3); }
+
+.landing-btn {
+  display: inline-block;
+  padding: 1.1rem 3.5rem;
+  background: white;
+  color: #c97a8a;
+  border: none;
+  font-size: 13px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  cursor: pointer;
+  font-family: Georgia, serif;
+  transition: all 0.3s ease;
+  border-radius: 50px;
+  font-weight: 400;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+  margin-bottom: 1.5rem;
+}
+
+.landing-btn:hover {
+  background: #c97a8a;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(201,122,138,0.4);
+}
+
+.landing-sub {
+  font-size: 12px !important;
+  letter-spacing: 2px;
+  color: rgba(255,255,255,0.5) !important;
+  text-transform: uppercase;
+  margin: 0 !important;
+}
+
+.landing-scroll {
+  position: absolute;
+  bottom: 2.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  cursor: pointer;
+  z-index: 2;
+}
+
+.scroll-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: white;
+  opacity: 0.6;
+  animation: pulse 2s ease infinite;
+  margin: 0 auto;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 0.6; }
+  50% { transform: scale(1.4); opacity: 1; }
+}
+
+@media (max-width: 768px) {
+  .landing-content h1 { font-size: 44px; letter-spacing: 2px; }
+  .landing-content h1 em { font-size: 20px; }
+  .landing-content p { font-size: 14px; }
+  .landing-stats { gap: 1rem; }
+  .landing-stat strong { font-size: 16px; }
+  .landing-btn { padding: 0.9rem 2.5rem; font-size: 12px; }
+}
+
+@media (max-width: 480px) {
+  .landing-content h1 { font-size: 32px; }
+  .landing-stat-divider { display: none; }
+  .landing-stats { flex-wrap: wrap; gap: 1rem; }
+}
