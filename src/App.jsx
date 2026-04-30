@@ -1,7 +1,23 @@
 import './App.css';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Contacto from './Contacto';
 import PayPalButton from './PayPalButton';
+
+// HOOK PARA ANIMACIONES AL HACER SCROLL
+function useScrollAnimation() {
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      }),
+      { threshold: 0.1 }
+    );
+    document.querySelectorAll('.animate').forEach(el => observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
+}
 
 function App() {
   const [mensaje, setMensaje] = useState('');
@@ -15,6 +31,11 @@ function App() {
   const [categoriaActiva, setCategoriaActiva] = useState('todos');
   const [newsletter, setNewsletter] = useState('');
   const [newsletterOk, setNewsletterOk] = useState(false);
+  const [popup, setPopup] = useState(false);
+  const [popupCerrado, setPopupCerrado] = useState(false);
+  const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 });
+
+  useScrollAnimation();
 
   const API = "https://jabonsa.onrender.com";
 
@@ -25,6 +46,21 @@ function App() {
     { id: 'floral', nombre: 'Floral', emoji: '🌸' },
     { id: 'regalo', nombre: 'Regalo', emoji: '🎁' },
   ];
+
+  // POPUP después de 4 segundos
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!popupCerrado) setPopup(true);
+    }, 4000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // CURSOR PERSONALIZADO
+  useEffect(() => {
+    const move = (e) => setCursorPos({ x: e.clientX, y: e.clientY });
+    window.addEventListener('mousemove', move);
+    return () => window.removeEventListener('mousemove', move);
+  }, []);
 
   const agregarAlCarrito = (prod) => {
     setCarrito(prev => {
@@ -120,6 +156,27 @@ function App() {
   return (
     <div className="sd-wrap">
 
+      {/* CURSOR PERSONALIZADO */}
+      <div className="cursor-custom" style={{ left: cursorPos.x, top: cursorPos.y }}>🌸</div>
+
+      {/* POPUP DESCUENTO */}
+      {popup && !popupCerrado && (
+        <div className="popup-overlay" onClick={() => { setPopup(false); setPopupCerrado(true); }}>
+          <div className="popup-box" onClick={e => e.stopPropagation()}>
+            <button className="popup-close" onClick={() => { setPopup(false); setPopupCerrado(true); }}>✕</button>
+            <div className="popup-emoji">🌸</div>
+            <span className="popup-tag">Oferta exclusiva</span>
+            <h2>¡Bienvenida a Savon d'Art!</h2>
+            <p>Suscríbete y recibe <strong>10% de descuento</strong> en tu primera compra</p>
+            <form onSubmit={(e) => { e.preventDefault(); setNewsletterOk(true); setPopup(false); setPopupCerrado(true); setMensaje('🎉 ¡Código SAVON10 activado!'); setTimeout(() => setMensaje(''), 4000); }}>
+              <input type="email" placeholder="Tu correo electrónico" required />
+              <button type="submit" className="btn-primary">Obtener 10% descuento →</button>
+            </form>
+            <p className="popup-sub">Código: <strong>SAVON10</strong> · Válido por 7 días</p>
+          </div>
+        </div>
+      )}
+
       {/* MODAL PRODUCTO */}
       {productoSeleccionado && (
         <div className="modal-overlay" onClick={() => setProductoSeleccionado(null)}>
@@ -143,6 +200,7 @@ function App() {
                 <span>💎 Premium</span>
               </div>
               <p className="modal-precio">{productoSeleccionado.precio}</p>
+              <div className="modal-stock">🔥 ¡Solo quedan pocas unidades!</div>
               <button className="btn-primary modal-btn" onClick={() => { agregarAlCarrito(productoSeleccionado); setProductoSeleccionado(null); }}>
                 Añadir al carrito
               </button>
@@ -203,6 +261,17 @@ function App() {
         )}
       </div>
 
+      {/* WHATSAPP FLOTANTE */}
+      
+        href="https://wa.me/593000000000?text=Hola!%20Me%20interesa%20hacer%20un%20pedido%20de%20Savon%20d'Art%20🌸"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="whatsapp-btn"
+      >
+        <span className="whatsapp-icon">💬</span>
+        <span className="whatsapp-texto">Pedir por WhatsApp</span>
+      </a>
+
       {/* TOP BAR */}
       <div className="top-bar">
         <span>🌸 Envío gratis en pedidos sobre $30</span>
@@ -243,7 +312,7 @@ function App() {
 
       {/* HERO */}
       <section className="sd-hero">
-        <div className="hero-content">
+        <div className="hero-content animate">
           <span className="hero-tag">✦ Colección Exclusiva 2026 ✦</span>
           <h1>Jabones Artesanales<br /><em>de Lujo Natural</em></h1>
           <p>Elaborados a mano con ingredientes naturales premium. Cuida tu piel con lo mejor de la naturaleza.</p>
@@ -263,7 +332,7 @@ function App() {
             <div className="hero-stat"><strong>Premium</strong><span>Calidad Luxe</span></div>
           </div>
         </div>
-        <div className="hero-img-wrap">
+        <div className="hero-img-wrap animate">
           <div className="hero-img-circle">
             <span style={{ fontSize: '120px' }}>🌸</span>
           </div>
@@ -273,66 +342,47 @@ function App() {
       </section>
 
       {/* CATEGORÍAS */}
-      <section className="categorias-section" id="categorias">
+      <section className="categorias-section animate" id="categorias">
         <div className="categorias-grid">
-          <div className="categoria-card" onClick={() => setCategoriaActiva('todos')}>
-            <div className="categoria-icon">✨</div>
-            <h3>Todos</h3>
-            <p>Ver todo</p>
-          </div>
-          <div className="categoria-card" onClick={() => setCategoriaActiva('rosa')}>
-            <div className="categoria-icon">🌹</div>
-            <h3>Jabones de Rosa</h3>
-            <p>Hidratación profunda</p>
-          </div>
-          <div className="categoria-card" onClick={() => setCategoriaActiva('uva')}>
-            <div className="categoria-icon">🍇</div>
-            <h3>Jabones de Uva</h3>
-            <p>Antioxidante natural</p>
-          </div>
-          <div className="categoria-card" onClick={() => setCategoriaActiva('floral')}>
-            <div className="categoria-icon">🌸</div>
-            <h3>Jabones Florales</h3>
-            <p>Aroma delicado</p>
-          </div>
-          <div className="categoria-card" onClick={() => setCategoriaActiva('regalo')}>
-            <div className="categoria-icon">🎁</div>
-            <h3>Sets de Regalo</h3>
-            <p>Para ocasiones especiales</p>
-          </div>
+          {[
+            { id: 'todos', icon: '✨', nombre: 'Todos', desc: 'Ver todo' },
+            { id: 'rosa', icon: '🌹', nombre: 'Jabones de Rosa', desc: 'Hidratación profunda' },
+            { id: 'uva', icon: '🍇', nombre: 'Jabones de Uva', desc: 'Antioxidante natural' },
+            { id: 'floral', icon: '🌸', nombre: 'Jabones Florales', desc: 'Aroma delicado' },
+            { id: 'regalo', icon: '🎁', nombre: 'Sets de Regalo', desc: 'Para ocasiones especiales' },
+          ].map(cat => (
+            <div key={cat.id} className={`categoria-card ${categoriaActiva === cat.id ? 'activa' : ''}`} onClick={() => setCategoriaActiva(cat.id)}>
+              <div className="categoria-icon">{cat.icon}</div>
+              <h3>{cat.nombre}</h3>
+              <p>{cat.desc}</p>
+            </div>
+          ))}
         </div>
       </section>
 
       {/* PRODUCTOS */}
       <section className="sd-section" id="collection">
-        <div className="sd-section-title">
+        <div className="sd-section-title animate">
           <span className="section-tag">Notre Collection</span>
           <h2>Nuestros Productos</h2>
           <div className="sd-divider"></div>
           <p className="section-subtitle">Cada jabón es una obra de arte elaborada con los mejores ingredientes naturales</p>
         </div>
-
-        {/* FILTROS */}
-        <div className="filtros-wrap">
+        <div className="filtros-wrap animate">
           {categorias.map(cat => (
-            <button
-              key={cat.id}
-              className={`filtro-btn ${categoriaActiva === cat.id ? 'activo' : ''}`}
-              onClick={() => setCategoriaActiva(cat.id)}
-            >
+            <button key={cat.id} className={`filtro-btn ${categoriaActiva === cat.id ? 'activo' : ''}`} onClick={() => setCategoriaActiva(cat.id)}>
               {cat.emoji} {cat.nombre}
             </button>
           ))}
         </div>
-
         <div className="sd-cards">
           {productosFiltrados.length === 0 ? (
             <p style={{ textAlign: 'center', color: '#8a7f72', fontSize: '14px', gridColumn: '1/-1', padding: '3rem' }}>
               {busqueda ? 'No se encontraron productos' : 'Cargando productos...'}
             </p>
           ) : (
-            productosFiltrados.map(prod => (
-              <div className="sd-card" key={prod._id}>
+            productosFiltrados.map((prod, index) => (
+              <div className="sd-card animate" key={prod._id} style={{ animationDelay: `${index * 0.1}s` }}>
                 <div className="sd-card-img-wrap" onClick={() => setProductoSeleccionado(prod)}>
                   {prod.imagen ? (
                     <img src={prod.imagen} alt={prod.nombre} className="sd-card-img" />
@@ -341,11 +391,13 @@ function App() {
                   )}
                   <div className="sd-card-overlay"><span>Ver detalle</span></div>
                   <div className="sd-card-badge">Natural</div>
+                  {index === 0 && <div className="sd-card-hot">🔥 Más vendido</div>}
                 </div>
                 <div className="sd-card-body">
-                  <div className="sd-card-stars">★★★★★</div>
+                  <div className="sd-card-stars">★★★★★ <span className="sd-card-reviews">(24)</span></div>
                   <h3>{prod.nombre}</h3>
                   <p>{prod.descripcion}</p>
+                  <div className="sd-card-stock">✓ En stock · Envío inmediato</div>
                   <div className="sd-card-footer">
                     <p className="sd-card-price">{prod.precio}</p>
                     <button className="btn-primary sd-card-btn" onClick={() => agregarAlCarrito(prod)}>
@@ -360,7 +412,7 @@ function App() {
       </section>
 
       {/* BANNER PROMO */}
-      <section className="banner-promo">
+      <section className="banner-promo animate">
         <div className="banner-promo-content">
           <div>
             <span className="banner-promo-tag">Oferta Especial</span>
@@ -378,81 +430,63 @@ function App() {
 
       {/* BENEFICIOS */}
       <section className="sd-section sd-dark" id="esencia">
-        <div className="sd-section-title">
+        <div className="sd-section-title animate">
           <span className="section-tag">¿Por qué elegirnos?</span>
           <h2>Savon d'Art — Nuestra Promesa</h2>
           <div className="sd-divider"></div>
         </div>
         <div className="beneficios-grid">
-          <div className="beneficio-card">
-            <div className="beneficio-icon">🌿</div>
-            <h3>100% Natural</h3>
-            <p>Sin químicos dañinos. Solo ingredientes naturales seleccionados para el cuidado de tu piel.</p>
-          </div>
-          <div className="beneficio-card">
-            <div className="beneficio-icon">✋</div>
-            <h3>Hecho a Mano</h3>
-            <p>Cada jabón es elaborado artesanalmente con dedicación y amor en cada detalle.</p>
-          </div>
-          <div className="beneficio-card">
-            <div className="beneficio-icon">💎</div>
-            <h3>Calidad Premium</h3>
-            <p>Colecciones exclusivas que convierten cada jabón en una pieza única e irrepetible.</p>
-          </div>
-          <div className="beneficio-card">
-            <div className="beneficio-icon">🚚</div>
-            <h3>Envío Rápido</h3>
-            <p>Enviamos a todo el Ecuador. Gratis en pedidos sobre $30.</p>
-          </div>
+          {[
+            { icon: '🌿', titulo: '100% Natural', desc: 'Sin químicos dañinos. Solo ingredientes naturales seleccionados para el cuidado de tu piel.' },
+            { icon: '✋', titulo: 'Hecho a Mano', desc: 'Cada jabón es elaborado artesanalmente con dedicación y amor en cada detalle.' },
+            { icon: '💎', titulo: 'Calidad Premium', desc: 'Colecciones exclusivas que convierten cada jabón en una pieza única e irrepetible.' },
+            { icon: '🚚', titulo: 'Envío Rápido', desc: 'Enviamos a todo el Ecuador. Gratis en pedidos sobre $30.' },
+          ].map((b, i) => (
+            <div key={i} className="beneficio-card animate" style={{ animationDelay: `${i * 0.15}s` }}>
+              <div className="beneficio-icon">{b.icon}</div>
+              <h3>{b.titulo}</h3>
+              <p>{b.desc}</p>
+            </div>
+          ))}
         </div>
       </section>
 
       {/* TESTIMONIOS */}
       <section className="sd-section testimonios-section">
-        <div className="sd-section-title">
+        <div className="sd-section-title animate">
           <span className="section-tag">Clientes Felices</span>
           <h2>Lo que dicen nuestros clientes</h2>
           <div className="sd-divider"></div>
         </div>
         <div className="testimonios-grid">
-          <div className="testimonio-card">
-            <div className="testimonio-stars">★★★★★</div>
-            <p>"Los jabones son increíbles, el aroma dura todo el día y mi piel se siente suavísima. ¡Los mejores que he probado!"</p>
-            <div className="testimonio-autor">
-              <div className="testimonio-avatar">M</div>
-              <div><strong>María García</strong><span>Quito, Ecuador</span></div>
+          {[
+            { inicial: 'M', nombre: 'María García', ciudad: 'Quito, Ecuador', texto: '"Los jabones son increíbles, el aroma dura todo el día y mi piel se siente suavísima. ¡Los mejores que he probado!"' },
+            { inicial: 'A', nombre: 'Andrea López', ciudad: 'Guayaquil, Ecuador', texto: '"Pedí una bandeja de regalo para mi boda y quedó perfecta. Todos los invitados preguntaron dónde los conseguí."' },
+            { inicial: 'C', nombre: 'Carlos Mora', ciudad: 'Cuenca, Ecuador', texto: '"Excelente calidad artesanal. Se nota que están hechos con amor y los mejores ingredientes naturales."' },
+          ].map((t, i) => (
+            <div key={i} className="testimonio-card animate" style={{ animationDelay: `${i * 0.15}s` }}>
+              <div className="testimonio-stars">★★★★★</div>
+              <p>{t.texto}</p>
+              <div className="testimonio-autor">
+                <div className="testimonio-avatar">{t.inicial}</div>
+                <div><strong>{t.nombre}</strong><span>{t.ciudad}</span></div>
+              </div>
             </div>
-          </div>
-          <div className="testimonio-card">
-            <div className="testimonio-stars">★★★★★</div>
-            <p>"Pedí una bandeja de regalo para mi boda y quedó perfecta. Todos los invitados preguntaron dónde los conseguí."</p>
-            <div className="testimonio-autor">
-              <div className="testimonio-avatar">A</div>
-              <div><strong>Andrea López</strong><span>Guayaquil, Ecuador</span></div>
-            </div>
-          </div>
-          <div className="testimonio-card">
-            <div className="testimonio-stars">★★★★★</div>
-            <p>"Excelente calidad artesanal. Se nota que están hechos con amor y los mejores ingredientes naturales."</p>
-            <div className="testimonio-autor">
-              <div className="testimonio-avatar">C</div>
-              <div><strong>Carlos Mora</strong><span>Cuenca, Ecuador</span></div>
-            </div>
-          </div>
+          ))}
         </div>
       </section>
 
       {/* BLOG */}
       <section className="sd-section blog-section" id="blog">
-        <div className="sd-section-title">
+        <div className="sd-section-title animate">
           <span className="section-tag">Tips & Bienestar</span>
           <h2>Nuestro Blog</h2>
           <div className="sd-divider"></div>
           <p className="section-subtitle">Consejos de bienestar, ingredientes naturales y más</p>
         </div>
         <div className="blog-grid">
-          {blogPosts.map(post => (
-            <div className="blog-card" key={post.id}>
+          {blogPosts.map((post, i) => (
+            <div className="blog-card animate" key={post.id} style={{ animationDelay: `${i * 0.1}s` }}>
               <div className="blog-card-img">
                 <span style={{ fontSize: '48px' }}>{post.emoji}</span>
               </div>
@@ -473,7 +507,7 @@ function App() {
       </section>
 
       {/* NEWSLETTER */}
-      <section className="newsletter-section">
+      <section className="newsletter-section animate">
         <div className="newsletter-content">
           <div className="newsletter-texto">
             <span className="section-tag">¡Únete a nuestra comunidad!</span>
@@ -487,13 +521,7 @@ function App() {
             </div>
           ) : (
             <form className="newsletter-form" onSubmit={handleNewsletter}>
-              <input
-                type="email"
-                placeholder="Tu correo electrónico"
-                value={newsletter}
-                onChange={e => setNewsletter(e.target.value)}
-                required
-              />
+              <input type="email" placeholder="Tu correo electrónico" value={newsletter} onChange={e => setNewsletter(e.target.value)} required />
               <button type="submit" className="btn-primary">Suscribirme →</button>
             </form>
           )}
@@ -502,7 +530,7 @@ function App() {
 
       {/* PEDIDOS */}
       <section className="sd-section sd-dark" id="pedidos">
-        <div className="sd-section-title">
+        <div className="sd-section-title animate">
           <span className="section-tag">Historique</span>
           <h2>Últimos Pedidos</h2>
           <div className="sd-divider"></div>
@@ -533,7 +561,7 @@ function App() {
             <p className="footer-tagline">Maison Artisanale</p>
             <p className="footer-desc">Jabones artesanales de lujo elaborados con ingredientes naturales premium para el cuidado de tu piel.</p>
             <div className="footer-social">
-              <a href="#contacto">📱 WhatsApp</a>
+              <a href="https://wa.me/593000000000" target="_blank" rel="noopener noreferrer">📱 WhatsApp</a>
               <a href="#contacto">📸 Instagram</a>
               <a href="#contacto">📧 Email</a>
             </div>
