@@ -311,7 +311,7 @@ body { font-family: Georgia, 'Times New Roman', serif; color: #1a1a1a; backgroun
   opacity: 0; transition: opacity 0.3s ease;
 }
 
-.sd-card:hover .sd-card-overlay { opacity: 1; }
+.sd-card:hover .sd-card-overlay { opacity: 0; }
 .sd-card-overlay span { color: white; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; border: 1px solid white; padding: 0.5rem 1.5rem; border-radius: 25px; }
 
 .sd-card-badge {
