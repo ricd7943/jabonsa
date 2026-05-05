@@ -1,16 +1,13 @@
 import './App.css';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import Contacto from './Contacto';
 import PayPalButton from './PayPalButton';
 
-// HOOK PARA ANIMACIONES AL HACER SCROLL
 function useScrollAnimation() {
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('visible');
-        }
+        if (entry.isIntersecting) entry.target.classList.add('visible');
       }),
       { threshold: 0.1 }
     );
@@ -38,6 +35,7 @@ function App() {
   useScrollAnimation();
 
   const API = "https://jabonsa.onrender.com";
+  const HERO_IMG = "https://res.cloudinary.com/df9bqf9tn/image/upload/q_auto/f_auto/v1777407969/WhatsApp_Image_2026-04-26_at_7.44.36_PM_a87lpd.jpg";
 
   const categorias = [
     { id: 'todos', nombre: 'Todos', emoji: '✨' },
@@ -47,15 +45,11 @@ function App() {
     { id: 'regalo', nombre: 'Regalo', emoji: '🎁' },
   ];
 
-  // POPUP después de 4 segundos
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (!popupCerrado) setPopup(true);
-    }, 4000);
+    const timer = setTimeout(() => { if (!popupCerrado) setPopup(true); }, 4000);
     return () => clearTimeout(timer);
   }, []);
 
-  // CURSOR PERSONALIZADO
   useEffect(() => {
     const move = (e) => setCursorPos({ x: e.clientX, y: e.clientY });
     window.addEventListener('mousemove', move);
@@ -95,7 +89,7 @@ function App() {
     }
   };
 
-  const onPagoExitoso = async (details) => {
+  const onPagoExitoso = async () => {
     try {
       await guardarPedidoEnDB();
       setMensaje(`🎉 ¡Pago exitoso! Gracias por tu compra.`);
@@ -125,10 +119,7 @@ function App() {
     } catch (err) { console.error(err); }
   };
 
-  useEffect(() => {
-    fetchCompras();
-    fetchProductos();
-  }, []);
+  useEffect(() => { fetchCompras(); fetchProductos(); }, []);
 
   const productosFiltrados = productos.filter(p => {
     const coincideBusqueda = p.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
@@ -141,10 +132,7 @@ function App() {
 
   const handleNewsletter = (e) => {
     e.preventDefault();
-    if (newsletter.includes('@')) {
-      setNewsletterOk(true);
-      setNewsletter('');
-    }
+    if (newsletter.includes('@')) { setNewsletterOk(true); setNewsletter(''); }
   };
 
   const blogPosts = [
@@ -156,23 +144,23 @@ function App() {
   return (
     <div className="sd-wrap">
 
-      {/* CURSOR PERSONALIZADO */}
+      {/* CURSOR */}
       <div className="cursor-custom" style={{ left: cursorPos.x, top: cursorPos.y }}>🌸</div>
 
-      {/* POPUP DESCUENTO */}
+      {/* POPUP */}
       {popup && !popupCerrado && (
         <div className="popup-overlay" onClick={() => { setPopup(false); setPopupCerrado(true); }}>
           <div className="popup-box" onClick={e => e.stopPropagation()}>
             <button className="popup-close" onClick={() => { setPopup(false); setPopupCerrado(true); }}>✕</button>
             <div className="popup-emoji">🌸</div>
             <span className="popup-tag">Oferta exclusiva</span>
-            <h2>¡Bienvenida a Savon d'Art!</h2>
+            <h2>¡Bienvenida a Sarielle Botanics!</h2>
             <p>Suscríbete y recibe <strong>10% de descuento</strong> en tu primera compra</p>
-            <form onSubmit={(e) => { e.preventDefault(); setNewsletterOk(true); setPopup(false); setPopupCerrado(true); setMensaje('🎉 ¡Código SAVON10 activado!'); setTimeout(() => setMensaje(''), 4000); }}>
+            <form onSubmit={(e) => { e.preventDefault(); setNewsletterOk(true); setPopup(false); setPopupCerrado(true); setMensaje('🎉 ¡Código SARIELLE10 activado!'); setTimeout(() => setMensaje(''), 4000); }}>
               <input type="email" placeholder="Tu correo electrónico" required />
               <button type="submit" className="btn-primary">Obtener 10% descuento →</button>
             </form>
-            <p className="popup-sub">Código: <strong>SAVON10</strong> · Válido por 7 días</p>
+            <p className="popup-sub">Código: <strong>SARIELLE10</strong> · Válido por 7 días</p>
           </div>
         </div>
       )}
@@ -213,7 +201,7 @@ function App() {
       {carritoAbierto && <div className="carrito-overlay" onClick={() => { setCarritoAbierto(false); setPagando(false); }} />}
       <div className={`carrito-panel ${carritoAbierto ? 'abierto' : ''}`}>
         <div className="carrito-header">
-          <h2>🛒 Mon Panier <span className="carrito-count">({totalItems})</span></h2>
+          <h2>🛒 Mi Carrito <span className="carrito-count">({totalItems})</span></h2>
           <button onClick={() => { setCarritoAbierto(false); setPagando(false); }}>✕</button>
         </div>
         {carrito.length === 0 ? (
@@ -262,12 +250,7 @@ function App() {
       </div>
 
       {/* WHATSAPP FLOTANTE */}
-      
-        href="https://wa.me/593000000000?text=Hola!%20Me%20interesa%20hacer%20un%20pedido%20de%20Savon%20d'Art%20🌸"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="whatsapp-btn"
-      >
+      <a href="https://wa.me/593000000000?text=Hola!%20Me%20interesa%20hacer%20un%20pedido%20de%20Sarielle%20Botanics%20🌸" target="_blank" rel="noopener noreferrer" className="whatsapp-btn">
         <span className="whatsapp-icon">💬</span>
         <span className="whatsapp-texto">Pedir por WhatsApp</span>
       </a>
@@ -276,7 +259,7 @@ function App() {
       <div className="top-bar">
         <span>🌸 Envío gratis en pedidos sobre $30</span>
         <span>✦</span>
-        <span>Jabones artesanales 100% naturales</span>
+        <span>Jabones botánicos 100% naturales</span>
         <span>✦</span>
         <span>💌 Pedidos especiales por WhatsApp</span>
       </div>
@@ -284,19 +267,14 @@ function App() {
       {/* HEADER */}
       <header className="sd-header">
         <div className="sd-logo">
-          <span className="logo-icon">🌸</span>
+          <span className="logo-icon">🌿</span>
           <div>
-            Savon d'Art
-            <span>Maison Artisanale</span>
+            Sarielle Botanics
+            <span>Natural · Artesanal · Premium</span>
           </div>
         </div>
         <div className="header-search">
-          <input
-            type="text"
-            placeholder="Buscar productos..."
-            value={busqueda}
-            onChange={e => setBusqueda(e.target.value)}
-          />
+          <input type="text" placeholder="Buscar productos..." value={busqueda} onChange={e => setBusqueda(e.target.value)} />
           <span className="search-icon">🔍</span>
         </div>
         <nav className="sd-nav">
@@ -310,12 +288,13 @@ function App() {
         </nav>
       </header>
 
-      {/* HERO */}
-      <section className="sd-hero">
+      {/* HERO CON IMAGEN DE FONDO */}
+      <section className="sd-hero" style={{ backgroundImage: `url(${HERO_IMG})` }}>
+        <div className="hero-overlay"></div>
         <div className="hero-content animate">
           <span className="hero-tag">✦ Colección Exclusiva 2026 ✦</span>
-          <h1>Jabones Artesanales<br /><em>de Lujo Natural</em></h1>
-          <p>Elaborados a mano con ingredientes naturales premium. Cuida tu piel con lo mejor de la naturaleza.</p>
+          <h1>Sarielle Botanics<br /><em>La naturaleza en tus manos</em></h1>
+          <p>Jabones botánicos artesanales elaborados con ingredientes naturales premium. Una experiencia sensorial única para el cuidado de tu piel.</p>
           <div className="hero-btns">
             <button className="btn-primary" onClick={() => document.getElementById('collection').scrollIntoView({ behavior: 'smooth' })}>
               Ver Colección →
@@ -331,13 +310,6 @@ function App() {
             <div className="hero-stat-divider"></div>
             <div className="hero-stat"><strong>Premium</strong><span>Calidad Luxe</span></div>
           </div>
-        </div>
-        <div className="hero-img-wrap animate">
-          <div className="hero-img-circle">
-            <span style={{ fontSize: '120px' }}>🌸</span>
-          </div>
-          <div className="hero-badge-1">🌿 Natural</div>
-          <div className="hero-badge-2">✋ Artesanal</div>
         </div>
       </section>
 
@@ -363,10 +335,10 @@ function App() {
       {/* PRODUCTOS */}
       <section className="sd-section" id="collection">
         <div className="sd-section-title animate">
-          <span className="section-tag">Notre Collection</span>
-          <h2>Nuestros Productos</h2>
+          <span className="section-tag">Nuestra Colección</span>
+          <h2>Productos Botánicos</h2>
           <div className="sd-divider"></div>
-          <p className="section-subtitle">Cada jabón es una obra de arte elaborada con los mejores ingredientes naturales</p>
+          <p className="section-subtitle">Cada jabón es una obra de arte elaborada con los mejores ingredientes de la naturaleza</p>
         </div>
         <div className="filtros-wrap animate">
           {categorias.map(cat => (
@@ -390,7 +362,7 @@ function App() {
                     <div className="sd-card-icon">{prod.emoji}</div>
                   )}
                   <div className="sd-card-overlay"><span>Ver detalle</span></div>
-                  <div className="sd-card-badge">Natural</div>
+                  <div className="sd-card-badge">Botánico</div>
                   {index === 0 && <div className="sd-card-hot">🔥 Más vendido</div>}
                 </div>
                 <div className="sd-card-body">
@@ -400,9 +372,7 @@ function App() {
                   <div className="sd-card-stock">✓ En stock · Envío inmediato</div>
                   <div className="sd-card-footer">
                     <p className="sd-card-price">{prod.precio}</p>
-                    <button className="btn-primary sd-card-btn" onClick={() => agregarAlCarrito(prod)}>
-                      + Carrito
-                    </button>
+                    <button className="btn-primary sd-card-btn" onClick={() => agregarAlCarrito(prod)}>+ Carrito</button>
                   </div>
                 </div>
               </div>
@@ -416,15 +386,13 @@ function App() {
         <div className="banner-promo-content">
           <div>
             <span className="banner-promo-tag">Oferta Especial</span>
-            <h2>Sets de Regalo Artesanales</h2>
+            <h2>Sets de Regalo Botánicos</h2>
             <p>Bandejas decoradas con moños dorados y jabones premium — perfectas para bodas, spas y eventos corporativos</p>
             <button className="btn-primary-light" onClick={() => document.getElementById('contacto').scrollIntoView({ behavior: 'smooth' })}>
               Solicitar Cotización →
             </button>
           </div>
-          <div className="banner-promo-deco">
-            <span style={{ fontSize: '80px' }}>🎁</span>
-          </div>
+          <div className="banner-promo-deco"><span style={{ fontSize: '80px' }}>🎁</span></div>
         </div>
       </section>
 
@@ -432,12 +400,12 @@ function App() {
       <section className="sd-section sd-dark" id="esencia">
         <div className="sd-section-title animate">
           <span className="section-tag">¿Por qué elegirnos?</span>
-          <h2>Savon d'Art — Nuestra Promesa</h2>
+          <h2>Sarielle Botanics — Nuestra Promesa</h2>
           <div className="sd-divider"></div>
         </div>
         <div className="beneficios-grid">
           {[
-            { icon: '🌿', titulo: '100% Natural', desc: 'Sin químicos dañinos. Solo ingredientes naturales seleccionados para el cuidado de tu piel.' },
+            { icon: '🌿', titulo: '100% Natural', desc: 'Sin químicos dañinos. Solo ingredientes botánicos seleccionados para el cuidado de tu piel.' },
             { icon: '✋', titulo: 'Hecho a Mano', desc: 'Cada jabón es elaborado artesanalmente con dedicación y amor en cada detalle.' },
             { icon: '💎', titulo: 'Calidad Premium', desc: 'Colecciones exclusivas que convierten cada jabón en una pieza única e irrepetible.' },
             { icon: '🚚', titulo: 'Envío Rápido', desc: 'Enviamos a todo el Ecuador. Gratis en pedidos sobre $30.' },
@@ -482,14 +450,12 @@ function App() {
           <span className="section-tag">Tips & Bienestar</span>
           <h2>Nuestro Blog</h2>
           <div className="sd-divider"></div>
-          <p className="section-subtitle">Consejos de bienestar, ingredientes naturales y más</p>
+          <p className="section-subtitle">Consejos de bienestar, ingredientes botánicos y más</p>
         </div>
         <div className="blog-grid">
           {blogPosts.map((post, i) => (
             <div className="blog-card animate" key={post.id} style={{ animationDelay: `${i * 0.1}s` }}>
-              <div className="blog-card-img">
-                <span style={{ fontSize: '48px' }}>{post.emoji}</span>
-              </div>
+              <div className="blog-card-img"><span style={{ fontSize: '48px' }}>{post.emoji}</span></div>
               <div className="blog-card-body">
                 <div className="blog-card-meta">
                   <span className="blog-tag">{post.tag}</span>
@@ -497,9 +463,7 @@ function App() {
                 </div>
                 <h3>{post.titulo}</h3>
                 <p>{post.desc}</p>
-                <button className="blog-leer" onClick={() => document.getElementById('contacto').scrollIntoView({ behavior: 'smooth' })}>
-                  Leer más →
-                </button>
+                <button className="blog-leer" onClick={() => document.getElementById('contacto').scrollIntoView({ behavior: 'smooth' })}>Leer más →</button>
               </div>
             </div>
           ))}
@@ -512,7 +476,7 @@ function App() {
           <div className="newsletter-texto">
             <span className="section-tag">¡Únete a nuestra comunidad!</span>
             <h2>Suscríbete al Newsletter</h2>
-            <p>Recibe tips de bienestar, descuentos exclusivos y novedades de Savon d'Art directamente en tu correo.</p>
+            <p>Recibe tips de bienestar, descuentos exclusivos y novedades de Sarielle Botanics directamente en tu correo.</p>
           </div>
           {newsletterOk ? (
             <div className="newsletter-ok">
@@ -531,7 +495,7 @@ function App() {
       {/* PEDIDOS */}
       <section className="sd-section sd-dark" id="pedidos">
         <div className="sd-section-title animate">
-          <span className="section-tag">Historique</span>
+          <span className="section-tag">Historial</span>
           <h2>Últimos Pedidos</h2>
           <div className="sd-divider"></div>
         </div>
@@ -557,9 +521,9 @@ function App() {
       <footer className="sd-footer">
         <div className="footer-top">
           <div className="footer-marca">
-            <h3>🌸 Savon d'Art</h3>
-            <p className="footer-tagline">Maison Artisanale</p>
-            <p className="footer-desc">Jabones artesanales de lujo elaborados con ingredientes naturales premium para el cuidado de tu piel.</p>
+            <h3>🌿 Sarielle Botanics</h3>
+            <p className="footer-tagline">Natural · Artesanal · Premium</p>
+            <p className="footer-desc">Jabones botánicos artesanales elaborados con ingredientes naturales premium para el cuidado de tu piel.</p>
             <div className="footer-social">
               <a href="https://wa.me/593000000000" target="_blank" rel="noopener noreferrer">📱 WhatsApp</a>
               <a href="#contacto">📸 Instagram</a>
@@ -584,12 +548,12 @@ function App() {
             <h4>Contacto</h4>
             <p>📍 Ecuador</p>
             <p>📱 WhatsApp disponible</p>
-            <p>📸 @savondart</p>
+            <p>📸 @sariellebotanics</p>
             <p>⏰ Lun-Sáb 9am-6pm</p>
           </div>
         </div>
         <div className="footer-bottom">
-          <p>© 2026 Savon d'Art — Maison Artisanale. Todos los derechos reservados.</p>
+          <p>© 2026 Sarielle Botanics. Todos los derechos reservados.</p>
           <p>Hecho con ❤️ en Ecuador</p>
         </div>
       </footer>

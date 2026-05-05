@@ -716,3 +716,26 @@ body { font-family: Georgia, 'Times New Roman', serif; color: #1a1a1a; backgroun
   .whatsapp-texto { display: none; }
   .whatsapp-btn { padding: 0.75rem; border-radius: 50%; }
 }
+/* HERO CON IMAGEN DE FONDO */
+.sd-hero {
+  padding: 7rem 3rem;
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  display: flex;
+  align-items: center;
+  min-height: 100vh;
+  position: relative;
+}
+
+.hero-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(135deg, rgba(61,43,31,0.8) 0%, rgba(201,122,138,0.5) 60%, rgba(91,164,200,0.3) 100%);
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+  max-width: 650px;
+}
