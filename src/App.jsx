@@ -355,12 +355,17 @@ function App() {
           ) : (
             productosFiltrados.map((prod, index) => (
               <div className="sd-card animate" key={prod._id} style={{ animationDelay: `${index * 0.1}s` }}>
-                <div className="sd-card-img-wrap" onClick={() => setProductoSeleccionado(prod)}>
-                  {prod.imagen ? (
-                    <img src={prod.imagen} alt={prod.nombre} className="sd-card-img" />
-                  ) : (
-                    <div className="sd-card-icon">{prod.emoji}</div>
-                  )}
+               <div className="sd-card-img-wrap" onClick={() => setProductoSeleccionado(prod)}>
+  {prod.imagen && prod.imagen.trim() !== '' ? (
+    <img
+      src={prod.imagen}
+      alt={prod.nombre}
+      className="sd-card-img"
+      onError={(e) => e.target.style.display = 'none'}
+    />
+  ) : (
+    <div className="sd-card-icon">{prod.emoji || '🌸'}</div>
+  )}
                   <div className="sd-card-overlay"><span>Ver detalle</span></div>
                   <div className="sd-card-badge">Botánico</div>
                   {index === 0 && <div className="sd-card-hot">🔥 Más vendido</div>}
