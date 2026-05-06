@@ -28,8 +28,7 @@ function App() {
   const [categoriaActiva, setCategoriaActiva] = useState('todos');
   const [newsletter, setNewsletter] = useState('');
   const [newsletterOk, setNewsletterOk] = useState(false);
-  const [popup, setPopup] = useState(false);
-  const [popupCerrado, setPopupCerrado] = useState(false);
+  
   const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 });
 
   useScrollAnimation([productos]);
@@ -45,10 +44,7 @@ function App() {
     { id: 'regalo', nombre: 'Regalo', emoji: '🎁' },
   ];
 
-  useEffect(() => {
-    const timer = setTimeout(() => { if (!popupCerrado) setPopup(true); }, 4000);
-    return () => clearTimeout(timer);
-  }, []);
+  
 
   useEffect(() => {
     const move = (e) => setCursorPos({ x: e.clientX, y: e.clientY });
@@ -147,23 +143,7 @@ function App() {
       {/* CURSOR */}
       <div className="cursor-custom" style={{ left: cursorPos.x, top: cursorPos.y }}>🌸</div>
 
-      {/* POPUP */}
-      {popup && !popupCerrado && (
-        <div className="popup-overlay" onClick={() => { setPopup(false); setPopupCerrado(true); }}>
-          <div className="popup-box" onClick={e => e.stopPropagation()}>
-            <button className="popup-close" onClick={() => { setPopup(false); setPopupCerrado(true); }}>✕</button>
-            <div className="popup-emoji">🌸</div>
-            <span className="popup-tag">Oferta exclusiva</span>
-            <h2>¡Bienvenida a Sarielle Botanics!</h2>
-            <p>Suscríbete y recibe <strong>10% de descuento</strong> en tu primera compra</p>
-            <form onSubmit={(e) => { e.preventDefault(); setNewsletterOk(true); setPopup(false); setPopupCerrado(true); setMensaje('🎉 ¡Código SARIELLE10 activado!'); setTimeout(() => setMensaje(''), 4000); }}>
-              <input type="email" placeholder="Tu correo electrónico" required />
-              <button type="submit" className="btn-primary">Obtener 10% descuento →</button>
-            </form>
-            <p className="popup-sub">Código: <strong>SARIELLE10</strong> · Válido por 7 días</p>
-          </div>
-        </div>
-      )}
+  
 
       {/* MODAL PRODUCTO */}
       {productoSeleccionado && (
