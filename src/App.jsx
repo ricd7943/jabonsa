@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import Contacto from './Contacto';
 import PayPalButton from './PayPalButton';
 
-function useScrollAnimation() {
+function useScrollAnimation(deps = []) {
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => entries.forEach(entry => {
@@ -13,7 +13,7 @@ function useScrollAnimation() {
     );
     document.querySelectorAll('.animate').forEach(el => observer.observe(el));
     return () => observer.disconnect();
-  }, []);
+  }, deps);
 }
 
 function App() {
@@ -32,7 +32,7 @@ function App() {
   const [popupCerrado, setPopupCerrado] = useState(false);
   const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 });
 
-  useScrollAnimation();
+  useScrollAnimation([productos]);
 
   const API = "https://jabonsa.onrender.com";
   const HERO_IMG = "https://res.cloudinary.com/df9bqf9tn/image/upload/q_auto/f_auto/v1777407969/WhatsApp_Image_2026-04-26_at_7.44.36_PM_a87lpd.jpg";
