@@ -28,13 +28,15 @@ function App() {
   const [categoriaActiva, setCategoriaActiva] = useState('todos');
   const [newsletter, setNewsletter] = useState('');
   const [newsletterOk, setNewsletterOk] = useState(false);
-  
   const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 });
 
   useScrollAnimation([productos]);
 
   const API = "https://jabonsa.onrender.com";
   const HERO_IMG = "https://res.cloudinary.com/df9bqf9tn/image/upload/q_auto/f_auto/v1777407969/WhatsApp_Image_2026-04-26_at_7.44.36_PM_a87lpd.jpg";
+  const WHATSAPP = "https://wa.me/593983444105?text=Hola!%20Me%20interesa%20hacer%20un%20pedido%20de%20Sarielle%20Botanics%20🌸";
+  const INSTAGRAM = "https://www.instagram.com/sarita_aesthetic_treatments";
+  const EMAIL = "mailto:sarayaelnaranjo5@gmail.com";
 
   const categorias = [
     { id: 'todos', nombre: 'Todos', emoji: '✨' },
@@ -43,8 +45,6 @@ function App() {
     { id: 'floral', nombre: 'Floral', emoji: '🌸' },
     { id: 'regalo', nombre: 'Regalo', emoji: '🎁' },
   ];
-
-  
 
   useEffect(() => {
     const move = (e) => setCursorPos({ x: e.clientX, y: e.clientY });
@@ -143,8 +143,6 @@ function App() {
       {/* CURSOR */}
       <div className="cursor-custom" style={{ left: cursorPos.x, top: cursorPos.y }}>🌸</div>
 
-  
-
       {/* MODAL PRODUCTO */}
       {productoSeleccionado && (
         <div className="modal-overlay" onClick={() => setProductoSeleccionado(null)}>
@@ -230,7 +228,7 @@ function App() {
       </div>
 
       {/* WHATSAPP FLOTANTE */}
-      <a href="https://wa.me/593000000000?text=Hola!%20Me%20interesa%20hacer%20un%20pedido%20de%20Sarielle%20Botanics%20🌸" target="_blank" rel="noopener noreferrer" className="whatsapp-btn">
+      <a href={WHATSAPP} target="_blank" rel="noopener noreferrer" className="whatsapp-btn">
         <span className="whatsapp-icon">💬</span>
         <span className="whatsapp-texto">Pedir por WhatsApp</span>
       </a>
@@ -268,7 +266,7 @@ function App() {
         </nav>
       </header>
 
-      {/* HERO CON IMAGEN DE FONDO */}
+      {/* HERO */}
       <section className="sd-hero" style={{ backgroundImage: `url(${HERO_IMG})` }}>
         <div className="hero-overlay"></div>
         <div className="hero-content animate">
@@ -505,9 +503,9 @@ function App() {
             <p className="footer-tagline">Natural · Artesanal · Premium</p>
             <p className="footer-desc">Jabones botánicos artesanales elaborados con ingredientes naturales premium para el cuidado de tu piel.</p>
             <div className="footer-social">
-              <a href="https://wa.me/593000000000" target="_blank" rel="noopener noreferrer">📱 WhatsApp</a>
-              <a href="#contacto">📸 Instagram</a>
-              <a href="#contacto">📧 Email</a>
+              <a href={WHATSAPP} target="_blank" rel="noopener noreferrer">📱 WhatsApp</a>
+              <a href={INSTAGRAM} target="_blank" rel="noopener noreferrer">📸 Instagram</a>
+              <a href={EMAIL}>📧 Email</a>
             </div>
           </div>
           <div className="footer-col">
@@ -527,8 +525,8 @@ function App() {
           <div className="footer-col">
             <h4>Contacto</h4>
             <p>📍 Ecuador</p>
-            <p>📱 WhatsApp disponible</p>
-            <p>📸 @sariellebotanics</p>
+            <p>📱 0983444105</p>
+            <p>📸 @sarita_aesthetic_treatments</p>
             <p>⏰ Lun-Sáb 9am-6pm</p>
           </div>
         </div>
