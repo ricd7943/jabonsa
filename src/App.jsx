@@ -52,6 +52,14 @@ function App() {
     return () => window.removeEventListener('mousemove', move);
   }, []);
 
+  // Feedback visual al cambiar de categoría
+  useEffect(() => {
+    if (categoriaActiva !== 'todos') {
+      setMensaje(`✨ Mostrando productos de ${categorias.find(c => c.id === categoriaActiva)?.nombre} ✨`);
+      setTimeout(() => setMensaje(''), 1500);
+    }
+  }, [categoriaActiva]);
+
   const agregarAlCarrito = (prod) => {
     setCarrito(prev => {
       const existe = prev.find(i => i._id === prod._id);
@@ -110,19 +118,39 @@ function App() {
   const fetchProductos = async () => {
     try {
       const res = await fetch(`${API}/productos`);
-      const data = await res.json();
+      let data = await res.json();
+      
+      // Asignar categorías según el nombre del producto
+      data = data.map(prod => {
+        const nombreLower = prod.nombre.toLowerCase();
+        if (nombreLower.includes('rosa')) return { ...prod, categoria: 'rosa' };
+        if (nombreLower.includes('uva')) return { ...prod, categoria: 'uva' };
+        if (nombreLower.includes('floral') || nombreLower.includes('jazmín') || nombreLower.includes('lavanda')) return { ...prod, categoria: 'floral' };
+        if (nombreLower.includes('regalo') || nombreLower.includes('set') || nombreLower.includes('bandeja')) return { ...prod, categoria: 'regalo' };
+        return { ...prod, categoria: 'todos' };
+      });
+      
       setProductos(data);
     } catch (err) { console.error(err); }
   };
 
   useEffect(() => { fetchCompras(); fetchProductos(); }, []);
 
- const productosFiltrados = productos.filter(p => {
-  const coincideBusqueda = busqueda === '' ||
-    p.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
-    p.descripcion.toLowerCase().includes(busqueda.toLowerCase());
-  return coincideBusqueda;
-});
+  // Filtro de productos por búsqueda y categoría
+  const productosFiltrados = productos.filter(p => {
+    const coincideBusqueda = busqueda === '' ||
+      p.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
+      p.descripcion?.toLowerCase().includes(busqueda.toLowerCase());
+    
+    let coincideCategoria = true;
+    if (categoriaActiva !== 'todos') {
+      coincideCategoria = p.categoria?.toLowerCase() === categoriaActiva.toLowerCase() ||
+                          p.nombre.toLowerCase().includes(categoriaActiva.toLowerCase());
+    }
+    
+    return coincideBusqueda && coincideCategoria;
+  });
+
   const handleNewsletter = (e) => {
     e.preventDefault();
     if (newsletter.includes('@')) { setNewsletterOk(true); setNewsletter(''); }
@@ -149,7 +177,7 @@ function App() {
               {productoSeleccionado.imagen ? (
                 <img src={productoSeleccionado.imagen} alt={productoSeleccionado.nombre} className="modal-img" />
               ) : (
-                <div className="modal-emoji">{productoSeleccionado.emoji}</div>
+                <div className="modal-emoji">{productoSeleccionado.emoji || '🧼'}</div>
               )}
             </div>
             <div className="modal-info">
@@ -190,7 +218,7 @@ function App() {
             <div className="carrito-items">
               {carrito.map(item => (
                 <div className="carrito-item" key={item._id}>
-                  {item.imagen ? <img src={item.imagen} alt={item.nombre} /> : <span style={{ fontSize: '28px' }}>{item.emoji}</span>}
+                  {item.imagen ? <img src={item.imagen} alt={item.nombre} /> : <span style={{ fontSize: '28px' }}>{item.emoji || '🧼'}</span>}
                   <div className="carrito-item-info">
                     <strong>{item.nombre}</strong>
                     <span>{item.precio}</span>
@@ -324,9 +352,32 @@ function App() {
         </div>
         <div className="sd-cards">
           {productosFiltrados.length === 0 ? (
-            <p style={{ textAlign: 'center', color: '#8a7f72', fontSize: '14px', gridColumn: '1/-1', padding: '3rem' }}>
-              {busqueda ? 'No se encontraron productos' : 'Cargando productos...'}
-            </p>
+            <div className="no-productos-message animate">
+              <div className="no-productos-emoji">🌸✨🧼</div>
+              <h3>Próximamente...</h3>
+              <p>
+                {busqueda 
+                  ? `No encontramos "${busqueda}" en nuestra colección` 
+                  : `✨ Los productos de ${categorias.find(c => c.id === categoriaActiva)?.nombre || 'esta categoría'} están en camino ✨`}
+              </p>
+              <p className="no-productos-sugerencia">
+                💡 ¿Te interesa algún producto en especial? 
+                <br />
+                <a href={WHATSAPP} target="_blank" rel="noopener noreferrer" className="no-productos-link">
+                  ¡Escríbenos por WhatsApp y lo creamos para ti!
+                </a>
+              </p>
+              <button 
+                className="btn-outline" 
+                onClick={() => {
+                  setCategoriaActiva('todos');
+                  setBusqueda('');
+                }}
+                style={{ marginTop: '1rem' }}
+              >
+                ← Ver todos los productos
+              </button>
+            </div>
           ) : (
             productosFiltrados.map((prod, index) => (
               <div className="sd-card animate" key={prod._id} style={{ animationDelay: `${index * 0.1}s` }}>
@@ -334,7 +385,7 @@ function App() {
                   {prod.imagen ? (
                     <img src={prod.imagen} alt={prod.nombre} className="sd-card-img" />
                   ) : (
-                    <div className="sd-card-icon">{prod.emoji}</div>
+                    <div className="sd-card-icon">{prod.emoji || '🧼'}</div>
                   )}
                   <div className="sd-card-overlay"><span>Ver detalle</span></div>
                   <div className="sd-card-badge">Botánico</div>
