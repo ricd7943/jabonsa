@@ -117,15 +117,12 @@ function App() {
 
   useEffect(() => { fetchCompras(); fetchProductos(); }, []);
 
-  const productosFiltrados = productos.filter(p => {
-    const coincideBusqueda = p.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
-      p.descripcion.toLowerCase().includes(busqueda.toLowerCase());
-    const coincideCategoria = categoriaActiva === 'todos' ||
-      p.nombre.toLowerCase().includes(categoriaActiva) ||
-      p.descripcion.toLowerCase().includes(categoriaActiva);
-    return coincideBusqueda && coincideCategoria;
-  });
-
+ const productosFiltrados = productos.filter(p => {
+  const coincideBusqueda = busqueda === '' ||
+    p.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
+    p.descripcion.toLowerCase().includes(busqueda.toLowerCase());
+  return coincideBusqueda;
+});
   const handleNewsletter = (e) => {
     e.preventDefault();
     if (newsletter.includes('@')) { setNewsletterOk(true); setNewsletter(''); }
