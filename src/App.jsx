@@ -29,6 +29,7 @@ function App() {
   const [newsletter, setNewsletter] = useState('');
   const [newsletterOk, setNewsletterOk] = useState(false);
   const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 });
+  const [cargando, setCargando] = useState(true);
 
   useScrollAnimation([productos]);
 
@@ -39,11 +40,11 @@ function App() {
   const EMAIL = "mailto:sarayaelnaranjo5@gmail.com";
 
   const categorias = [
-    { id: 'todos', nombre: 'Todos', emoji: '✨' },
-    { id: 'rosa', nombre: 'Rosa', emoji: '🌹' },
-    { id: 'uva', nombre: 'Uva', emoji: '🍇' },
-    { id: 'floral', nombre: 'Floral', emoji: '🌸' },
-    { id: 'regalo', nombre: 'Regalo', emoji: '🎁' },
+    { id: 'todos', nombre: 'Todos', emoji: '✨', palabrasClave: [] },
+    { id: 'rosa', nombre: 'Rosa', emoji: '🌹', palabrasClave: ['rosa', 'rosas', 'rose'] },
+    { id: 'uva', nombre: 'Uva', emoji: '🍇', palabrasClave: ['uva', 'uvas', 'grape'] },
+    { id: 'floral', nombre: 'Floral', emoji: '🌸', palabrasClave: ['floral', 'jazmin', 'jazmín', 'lavanda', 'flores', 'coco'] },
+    { id: 'regalo', nombre: 'Regalo', emoji: '🎁', palabrasClave: ['regalo', 'set', 'kit', 'bandeja', 'pack'] },
   ];
 
   useEffect(() => {
@@ -55,8 +56,10 @@ function App() {
   // Feedback visual al cambiar de categoría
   useEffect(() => {
     if (categoriaActiva !== 'todos') {
-      setMensaje(`✨ Mostrando productos de ${categorias.find(c => c.id === categoriaActiva)?.nombre} ✨`);
-      setTimeout(() => setMensaje(''), 1500);
+      const catNombre = categorias.find(c => c.id === categoriaActiva)?.nombre;
+      const cantidad = productosFiltrados.length;
+      setMensaje(`✨ Mostrando ${cantidad} productos de ${catNombre} ✨`);
+      setTimeout(() => setMensaje(''), 2000);
     }
   }, [categoriaActiva]);
 
@@ -75,7 +78,7 @@ function App() {
   };
 
   const totalCarrito = carrito.reduce((acc, i) => {
-    const precio = parseFloat(i.precio.replace(/[^0-9.]/g, ''));
+    const precio = parseFloat(i.precio?.replace(/[^0-9.]/g, '') || '0');
     return acc + (precio * i.cantidad);
   }, 0);
 
@@ -117,39 +120,73 @@ function App() {
 
   const fetchProductos = async () => {
     try {
+      setCargando(true);
       const res = await fetch(`${API}/productos`);
       let data = await res.json();
       
-      // Asignar categorías según el nombre del producto
+      console.log("📦 Productos desde API:", data);
+      
+      // Asignar categorías según palabras clave
       data = data.map(prod => {
-        const nombreLower = prod.nombre.toLowerCase();
-        if (nombreLower.includes('rosa')) return { ...prod, categoria: 'rosa' };
-        if (nombreLower.includes('uva')) return { ...prod, categoria: 'uva' };
-        if (nombreLower.includes('floral') || nombreLower.includes('jazmín') || nombreLower.includes('lavanda')) return { ...prod, categoria: 'floral' };
-        if (nombreLower.includes('regalo') || nombreLower.includes('set') || nombreLower.includes('bandeja')) return { ...prod, categoria: 'regalo' };
-        return { ...prod, categoria: 'todos' };
+        const nombreLower = (prod.nombre || '').toLowerCase();
+        const descLower = (prod.descripcion || '').toLowerCase();
+        
+        // Buscar en qué categoría cae
+        let categoriaAsignada = 'todos';
+        
+        for (const cat of categorias) {
+          if (cat.id === 'todos') continue;
+          
+          for (const palabra of cat.palabrasClave) {
+            if (nombreLower.includes(palabra) || descLower.includes(palabra)) {
+              categoriaAsignada = cat.id;
+              break;
+            }
+          }
+          if (categoriaAsignada !== 'todos') break;
+        }
+        
+        console.log(`Producto: "${prod.nombre}" → Categoría: ${categoriaAsignada}`);
+        
+        return { 
+          ...prod, 
+          categoria: categoriaAsignada,
+          emoji: prod.emoji || '🧼',
+          descripcion: prod.descripcion || 'Jabón artesanal 100% natural'
+        };
       });
       
       setProductos(data);
-    } catch (err) { console.error(err); }
+      console.log("✅ Productos procesados:", data.length);
+    } catch (err) { 
+      console.error("❌ Error fetchProductos:", err); 
+    } finally {
+      setCargando(false);
+    }
   };
 
-  useEffect(() => { fetchCompras(); fetchProductos(); }, []);
+  useEffect(() => { 
+    fetchCompras(); 
+    fetchProductos(); 
+  }, []);
 
   // Filtro de productos por búsqueda y categoría
   const productosFiltrados = productos.filter(p => {
+    // Filtro por búsqueda
     const coincideBusqueda = busqueda === '' ||
-      p.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
-      p.descripcion?.toLowerCase().includes(busqueda.toLowerCase());
+      (p.nombre && p.nombre.toLowerCase().includes(busqueda.toLowerCase())) ||
+      (p.descripcion && p.descripcion.toLowerCase().includes(busqueda.toLowerCase()));
     
+    // Filtro por categoría
     let coincideCategoria = true;
     if (categoriaActiva !== 'todos') {
-      coincideCategoria = p.categoria?.toLowerCase() === categoriaActiva.toLowerCase() ||
-                          p.nombre.toLowerCase().includes(categoriaActiva.toLowerCase());
+      coincideCategoria = p.categoria === categoriaActiva;
     }
     
     return coincideBusqueda && coincideCategoria;
   });
+
+  console.log(`🔍 Filtro activo: categoría=${categoriaActiva}, productos encontrados=${productosFiltrados.length}`);
 
   const handleNewsletter = (e) => {
     e.preventDefault();
@@ -319,17 +356,11 @@ function App() {
       {/* CATEGORÍAS */}
       <section className="categorias-section animate" id="categorias">
         <div className="categorias-grid">
-          {[
-            { id: 'todos', icon: '✨', nombre: 'Todos', desc: 'Ver todo' },
-            { id: 'rosa', icon: '🌹', nombre: 'Jabones de Rosa', desc: 'Hidratación profunda' },
-            { id: 'uva', icon: '🍇', nombre: 'Jabones de Uva', desc: 'Antioxidante natural' },
-            { id: 'floral', icon: '🌸', nombre: 'Jabones Florales', desc: 'Aroma delicado' },
-            { id: 'regalo', icon: '🎁', nombre: 'Sets de Regalo', desc: 'Para ocasiones especiales' },
-          ].map(cat => (
+          {categorias.map(cat => (
             <div key={cat.id} className={`categoria-card ${categoriaActiva === cat.id ? 'activa' : ''}`} onClick={() => setCategoriaActiva(cat.id)}>
-              <div className="categoria-icon">{cat.icon}</div>
-              <h3>{cat.nombre}</h3>
-              <p>{cat.desc}</p>
+              <div className="categoria-icon">{cat.emoji}</div>
+              <h3>Jabones {cat.nombre === 'Todos' ? '' : 'de'} {cat.nombre}</h3>
+              <p>{cat.id === 'todos' ? 'Ver todo' : cat.nombre === 'Rosa' ? 'Hidratación profunda' : cat.nombre === 'Uva' ? 'Antioxidante natural' : cat.nombre === 'Floral' ? 'Aroma delicado' : 'Para ocasiones especiales'}</p>
             </div>
           ))}
         </div>
@@ -351,7 +382,11 @@ function App() {
           ))}
         </div>
         <div className="sd-cards">
-          {productosFiltrados.length === 0 ? (
+          {cargando ? (
+            <p style={{ textAlign: 'center', color: '#8a7f72', fontSize: '14px', gridColumn: '1/-1', padding: '3rem' }}>
+              Cargando productos... 🌸
+            </p>
+          ) : productosFiltrados.length === 0 ? (
             <div className="no-productos-message animate">
               <div className="no-productos-emoji">🌸✨🧼</div>
               <h3>Próximamente...</h3>
