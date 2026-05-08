@@ -53,6 +53,20 @@ function App() {
     return () => window.removeEventListener('mousemove', move);
   }, []);
 
+  // Forzar re-render cuando cambia la categoría o búsqueda (SOLUCIÓN PANTALLA BLANCA)
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      const productosGrid = document.querySelector('.sd-cards');
+      if (productosGrid) {
+        productosGrid.style.opacity = '0.99';
+        setTimeout(() => {
+          if (productosGrid) productosGrid.style.opacity = '1';
+        }, 10);
+      }
+    }, 50);
+    return () => clearTimeout(timeout);
+  }, [categoriaActiva, busqueda]);
+
   // Feedback visual al cambiar de categoría
   useEffect(() => {
     if (categoriaActiva !== 'todos') {
@@ -357,7 +371,14 @@ function App() {
       <section className="categorias-section animate" id="categorias">
         <div className="categorias-grid">
           {categorias.map(cat => (
-            <div key={cat.id} className={`categoria-card ${categoriaActiva === cat.id ? 'activa' : ''}`} onClick={() => setCategoriaActiva(cat.id)}>
+            <div key={cat.id} className={`categoria-card ${categoriaActiva === cat.id ? 'activa' : ''}`} onClick={() => {
+              setCategoriaActiva(cat.id);
+              // Scroll suave después de cambiar categoría
+              setTimeout(() => {
+                const productosSection = document.getElementById('collection');
+                if (productosSection) productosSection.scrollIntoView({ behavior: 'smooth' });
+              }, 100);
+            }}>
               <div className="categoria-icon">{cat.emoji}</div>
               <h3>Jabones {cat.nombre === 'Todos' ? '' : 'de'} {cat.nombre}</h3>
               <p>{cat.id === 'todos' ? 'Ver todo' : cat.nombre === 'Rosa' ? 'Hidratación profunda' : cat.nombre === 'Uva' ? 'Antioxidante natural' : cat.nombre === 'Floral' ? 'Aroma delicado' : 'Para ocasiones especiales'}</p>
@@ -376,70 +397,86 @@ function App() {
         </div>
         <div className="filtros-wrap animate">
           {categorias.map(cat => (
-            <button key={cat.id} className={`filtro-btn ${categoriaActiva === cat.id ? 'activo' : ''}`} onClick={() => setCategoriaActiva(cat.id)}>
+            <button key={cat.id} className={`filtro-btn ${categoriaActiva === cat.id ? 'activo' : ''}`} onClick={() => {
+              setCategoriaActiva(cat.id);
+              setTimeout(() => {
+                const productosSection = document.getElementById('collection');
+                if (productosSection) productosSection.scrollIntoView({ behavior: 'smooth' });
+              }, 100);
+            }}>
               {cat.emoji} {cat.nombre}
             </button>
           ))}
         </div>
-        <div className="sd-cards">
-          {cargando ? (
+        
+        {/* Mostrar productos o mensaje - CORREGIDO CON KEY */}
+        {cargando ? (
+          <div className="sd-cards" key="cargando">
             <p style={{ textAlign: 'center', color: '#8a7f72', fontSize: '14px', gridColumn: '1/-1', padding: '3rem' }}>
               Cargando productos... 🌸
             </p>
-          ) : productosFiltrados.length === 0 ? (
-            <div className="no-productos-message animate">
-              <div className="no-productos-emoji">🌸✨🧼</div>
-              <h3>Próximamente...</h3>
-              <p>
-                {busqueda 
-                  ? `No encontramos "${busqueda}" en nuestra colección` 
-                  : `✨ Los productos de ${categorias.find(c => c.id === categoriaActiva)?.nombre || 'esta categoría'} están en camino ✨`}
-              </p>
-              <p className="no-productos-sugerencia">
-                💡 ¿Te interesa algún producto en especial? 
-                <br />
-                <a href={WHATSAPP} target="_blank" rel="noopener noreferrer" className="no-productos-link">
-                  ¡Escríbenos por WhatsApp y lo creamos para ti!
-                </a>
-              </p>
-              <button 
-                className="btn-outline" 
-                onClick={() => {
-                  setCategoriaActiva('todos');
-                  setBusqueda('');
-                }}
-                style={{ marginTop: '1rem' }}
-              >
-                ← Ver todos los productos
-              </button>
-            </div>
-          ) : (
-            productosFiltrados.map((prod, index) => (
-              <div className="sd-card animate" key={prod._id} style={{ animationDelay: `${index * 0.1}s` }}>
-                <div className="sd-card-img-wrap" onClick={() => setProductoSeleccionado(prod)}>
-                  {prod.imagen ? (
-                    <img src={prod.imagen} alt={prod.nombre} className="sd-card-img" />
-                  ) : (
-                    <div className="sd-card-icon">{prod.emoji || '🧼'}</div>
-                  )}
-                  <div className="sd-card-overlay"><span>Ver detalle</span></div>
-                  <div className="sd-card-badge">Botánico</div>
-                  {index === 0 && <div className="sd-card-hot">🔥 Más vendido</div>}
-                </div>
-                <div className="sd-card-body">
-                  <div className="sd-card-stars">★★★★★ <span className="sd-card-reviews">(24)</span></div>
-                  <h3>{prod.nombre}</h3>
-                  <p>{prod.descripcion}</p>
-                  <div className="sd-card-stock">✓ En stock · Envío inmediato</div>
-                  <div className="sd-card-footer">
-                    <p className="sd-card-price">{prod.precio}</p>
-                    <button className="btn-primary sd-card-btn" onClick={() => agregarAlCarrito(prod)}>+ Carrito</button>
+          </div>
+        ) : (
+          <div className="sd-cards" key={`productos-${categoriaActiva}-${productosFiltrados.length}`}>
+            {productosFiltrados.length === 0 ? (
+              <div className="no-productos-message">
+                <div className="no-productos-emoji">🌸✨🧼</div>
+                <h3>Próximamente...</h3>
+                <p>
+                  {busqueda 
+                    ? `No encontramos "${busqueda}" en nuestra colección` 
+                    : `✨ Los productos de ${categorias.find(c => c.id === categoriaActiva)?.nombre || 'esta categoría'} están en camino ✨`}
+                </p>
+                <p className="no-productos-sugerencia">
+                  💡 ¿Te interesa algún producto en especial? 
+                  <br />
+                  <a href={WHATSAPP} target="_blank" rel="noopener noreferrer" className="no-productos-link">
+                    ¡Escríbenos por WhatsApp y lo creamos para ti!
+                  </a>
+                </p>
+                <button 
+                  className="btn-outline" 
+                  onClick={() => {
+                    setCategoriaActiva('todos');
+                    setBusqueda('');
+                    setTimeout(() => {
+                      const productosSection = document.getElementById('collection');
+                      if (productosSection) productosSection.scrollIntoView({ behavior: 'smooth' });
+                    }, 100);
+                  }}
+                  style={{ marginTop: '1rem' }}
+                >
+                  ← Ver todos los productos
+                </button>
+              </div>
+            ) : (
+              productosFiltrados.map((prod, index) => (
+                <div className="sd-card" key={prod._id} style={{ animationDelay: `${index * 0.1}s` }}>
+                  <div className="sd-card-img-wrap" onClick={() => setProductoSeleccionado(prod)}>
+                    {prod.imagen ? (
+                      <img src={prod.imagen} alt={prod.nombre} className="sd-card-img" />
+                    ) : (
+                      <div className="sd-card-icon">{prod.emoji || '🧼'}</div>
+                    )}
+                    <div className="sd-card-overlay"><span>Ver detalle</span></div>
+                    <div className="sd-card-badge">Botánico</div>
+                    {index === 0 && <div className="sd-card-hot">🔥 Más vendido</div>}
+                  </div>
+                  <div className="sd-card-body">
+                    <div className="sd-card-stars">★★★★★ <span className="sd-card-reviews">(24)</span></div>
+                    <h3>{prod.nombre}</h3>
+                    <p>{prod.descripcion}</p>
+                    <div className="sd-card-stock">✓ En stock · Envío inmediato</div>
+                    <div className="sd-card-footer">
+                      <p className="sd-card-price">{prod.precio}</p>
+                      <button className="btn-primary sd-card-btn" onClick={() => agregarAlCarrito(prod)}>+ Carrito</button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))
-          )}
-        </div>
+              ))
+            )}
+          </div>
+        )}
       </section>
 
       {/* BANNER PROMO */}
