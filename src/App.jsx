@@ -647,7 +647,7 @@ function App() {
             <p>📍 Ecuador</p>
             <p>📱 0983444105</p>
             <p>📸 @sarita_aesthetic_treatments</p>
-            <p>⏰ Lun-Sáb 9am-6pm</p>
+            <p>⏰ Siempre aquí para ti ✨</p>
           </div>
         </div>
         <div className="footer-bottom">
