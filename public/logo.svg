@@ -1,23 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
-  <defs>
-    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#c97a8a;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#5ba4c8;stop-opacity:1" />
-    </linearGradient>
-  </defs>
-  
-  <!-- Fondo redondeado -->
-  <rect width="200" height="200" rx="35" fill="url(#grad)" />
-  
-  <!-- Borde sutil -->
-  <rect width="180" height="180" x="10" y="10" rx="25" fill="none" stroke="white" stroke-width="1.5" stroke-opacity="0.3" />
-  
-  <!-- Letra S grande -->
-  <text x="100" y="125" font-family="Georgia, 'Times New Roman', serif" font-size="100" font-weight="400" fill="white" text-anchor="middle" font-style="italic">S</text>
-  
-  <!-- Texto completo arriba (pequeño) -->
-  <text x="100" y="165" font-family="Georgia, 'Times New Roman', serif" font-size="11" fill="white" text-anchor="middle" letter-spacing="2.5" font-weight="300" opacity="0.9">SARIELLE</text>
-  
-  <!-- Texto completo abajo (más pequeño) -->
-  <text x="100" y="180" font-family="Georgia, 'Times New Roman', serif" font-size="8" fill="white" text-anchor="middle" letter-spacing="1.5" font-weight="300" opacity="0.7">BOTANICS</text>
+  <rect width="200" height="200" rx="35" fill="#c97a8a"/>
+  <text x="100" y="125" font-family="Georgia" font-size="100" fill="white" text-anchor="middle" font-style="italic">S</text>
+  <text x="100" y="165" font-family="Georgia" font-size="10" fill="white" text-anchor="middle" letter-spacing="3" opacity="0.9">SARIELLE</text>
+  <text x="100" y="180" font-family="Georgia" font-size="7" fill="white" text-anchor="middle" letter-spacing="2" opacity="0.7">BOTANICS</text>
 </svg>
