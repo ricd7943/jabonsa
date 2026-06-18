@@ -39,14 +39,14 @@ function App() {
   const INSTAGRAM = "https://www.instagram.com/sarita_aesthetic_treatments";
   const EMAIL = "mailto:sarayaelnaranjo5@gmail.com";
 
-  const categorias = [
-    { id: 'todos', nombre: 'Todos', emoji: '✨', palabrasClave: [] },
-    { id: 'rosa', nombre: 'Rosa', emoji: '🌹', palabrasClave: ['rosa', 'rosas', 'rose'] },
-    { id: 'uva', nombre: 'Uva', emoji: '🍇', palabrasClave: ['uva', 'uvas', 'grape'] },
-    { id: 'floral', nombre: 'Floral', emoji: '🌸', palabrasClave: ['floral', 'jazmin', 'jazmín', 'lavanda', 'flores', 'coco'] },
-    { id: 'regalo', nombre: 'Regalo', emoji: '🎁', palabrasClave: ['regalo', 'set', 'kit', 'bandeja', 'pack'] },
-  ];
-
+ const categorias = [
+  { id: 'todos', nombre: 'Todos', emoji: '✨', palabrasClave: [] },
+  { id: 'jabones', nombre: 'Jabones', emoji: '🧼', palabrasClave: ['jabon', 'jabón', 'jabones'] },
+  { id: 'exfoliantes', nombre: 'Exfoliantes', emoji: '✨', palabrasClave: ['exfoliante', 'corporal', 'cafe', 'café', 'frutos'] },
+  { id: 'cremas', nombre: 'Cremas', emoji: '🧴', palabrasClave: ['crema', 'hidratante'] },
+  { id: 'perfumes', nombre: 'Perfumes', emoji: '🌸', palabrasClave: ['perfume', 'esencia'] },
+  { id: 'regalos', nombre: 'Regalos', emoji: '🎁', palabrasClave: ['regalo', 'set', 'kit', 'pack', 'bandeja'] },
+];
   useEffect(() => {
     const move = (e) => setCursorPos({ x: e.clientX, y: e.clientY });
     window.addEventListener('mousemove', move);
