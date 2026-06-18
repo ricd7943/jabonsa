@@ -21,12 +21,9 @@ function Admin() {
   const [mensaje, setMensaje] = useState('');
   const [vista, setVista] = useState('productos');
   const [subiendo, setSubiendo] = useState(false);
-
-  // Estados para el recorte de imagen - CORREGIDOS
-  const [crop, setCrop] = useState({ unit: '%', width: 100, height: 100, x: 0, y: 0 });
+  const [crop, setCrop] = useState({ unit: '%', width: 80, height: 80, x: 10, y: 10 });
   const [imagenParaRecortar, setImagenParaRecortar] = useState(null);
   const [cropModalAbierto, setCropModalAbierto] = useState(false);
-  const [imagenOriginal, setImagenOriginal] = useState(null);
 
   const login = async () => {
     if (password.trim() === '') return;
@@ -76,10 +73,8 @@ function Admin() {
     }
   };
 
-  // Función para recortar y subir la imagen - CORREGIDA
   const recortarYSubir = async () => {
     if (!imagenParaRecortar) return;
-    
     setSubiendo(true);
     try {
       const canvas = document.createElement('canvas');
@@ -90,10 +85,10 @@ function Admin() {
       const scaleX = image.naturalWidth / 100;
       const scaleY = image.naturalHeight / 100;
       
-      const cropWidth = crop.width || 100;
-      const cropHeight = crop.height || 100;
-      const cropX = crop.x || 0;
-      const cropY = crop.y || 0;
+      const cropWidth = crop.width || 80;
+      const cropHeight = crop.height || 80;
+      const cropX = crop.x || 10;
+      const cropY = crop.y || 10;
       
       canvas.width = cropWidth * scaleX;
       canvas.height = cropHeight * scaleY;
@@ -126,12 +121,9 @@ function Admin() {
       if (data.url) {
         setForm(f => ({ ...f, imagenes: [...f.imagenes, data.url] }));
         setMensaje('✅ Imagen subida y recortada correctamente');
-        // Cerrar modal y limpiar
         setCropModalAbierto(false);
         setImagenParaRecortar(null);
-        setImagenOriginal(null);
-        // Resetear crop a valores por defecto
-        setCrop({ unit: '%', width: 100, height: 100, x: 0, y: 0 });
+        setCrop({ unit: '%', width: 80, height: 80, x: 10, y: 10 });
         setTimeout(() => setMensaje(''), 3000);
       }
     } catch (err) {
@@ -141,30 +133,22 @@ function Admin() {
     setSubiendo(false);
   };
 
-  // Función para cancelar el recorte - CORREGIDA
   const cancelarRecorte = () => {
     setCropModalAbierto(false);
     setImagenParaRecortar(null);
-    setImagenOriginal(null);
-    // Resetear crop a valores por defecto
-    setCrop({ unit: '%', width: 100, height: 100, x: 0, y: 0 });
+    setCrop({ unit: '%', width: 80, height: 80, x: 10, y: 10 });
   };
 
-  // Función para seleccionar imagen y abrir el modal de recorte - CORREGIDA
   const seleccionarImagenParaRecortar = (e) => {
     const file = e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = () => {
-      const imgSrc = reader.result;
-      setImagenOriginal(imgSrc);
-      setImagenParaRecortar(imgSrc);
-      // Resetear crop al abrir
-      setCrop({ unit: '%', width: 100, height: 100, x: 0, y: 0 });
+      setImagenParaRecortar(reader.result);
+      setCrop({ unit: '%', width: 80, height: 80, x: 10, y: 10 });
       setCropModalAbierto(true);
     };
     reader.readAsDataURL(file);
-    // Limpiar el input para permitir seleccionar el mismo archivo de nuevo
     e.target.value = '';
   };
 
@@ -177,7 +161,6 @@ function Admin() {
 
   const guardarProducto = async () => {
     if (!form.nombre || !form.precio) return setMensaje('❌ Nombre y precio son obligatorios');
-    
     const dataParaEnviar = {
       nombre: form.nombre,
       descripcion: form.descripcion,
@@ -185,7 +168,6 @@ function Admin() {
       emoji: form.emoji,
       imagenes: form.imagenes || []
     };
-    
     try {
       const url = editando ? `${API}/admin/productos/${editando}` : `${API}/admin/productos`;
       const method = editando ? 'PUT' : 'POST';
@@ -215,7 +197,6 @@ function Admin() {
     } else if (prod.imagen) {
       imagenesArray = [prod.imagen];
     }
-    
     setForm({
       nombre: prod.nombre || '',
       descripcion: prod.descripcion || '',
@@ -263,30 +244,14 @@ function Admin() {
         <div className="admin-content">
           <div className="admin-form">
             <h2>{editando ? 'Editar Producto' : 'Nuevo Producto'}</h2>
-            <input 
-              placeholder="Emoji (ej: 🌹)" 
-              value={form.emoji} 
-              onChange={e => setForm({ ...form, emoji: e.target.value })} 
-            />
-            <input 
-              placeholder="Nombre del producto" 
-              value={form.nombre} 
-              onChange={e => setForm({ ...form, nombre: e.target.value })} 
-            />
-            <input 
-              placeholder="Descripción" 
-              value={form.descripcion} 
-              onChange={e => setForm({ ...form, descripcion: e.target.value })} 
-            />
-            <input 
-              placeholder="Precio (ej: $12.00 USD)" 
-              value={form.precio} 
-              onChange={e => setForm({ ...form, precio: e.target.value })} 
-            />
+            <input placeholder="Emoji (ej: 🌹)" value={form.emoji} onChange={e => setForm({ ...form, emoji: e.target.value })} />
+            <input placeholder="Nombre del producto" value={form.nombre} onChange={e => setForm({ ...form, nombre: e.target.value })} />
+            <input placeholder="Descripción" value={form.descripcion} onChange={e => setForm({ ...form, descripcion: e.target.value })} />
+            <input placeholder="Precio (ej: $12.00 USD)" value={form.precio} onChange={e => setForm({ ...form, precio: e.target.value })} />
             
             <div className="admin-upload">
               <label className="btn-upload">
-                {subiendo ? 'Subiendo...' : '📁 Subir imagen desde computador (con recorte)'}
+                {subiendo ? 'Subiendo...' : '📁 Subir imagen desde computador (con recorte libre)'}
                 <input
                   type="file"
                   accept="image/*"
@@ -302,13 +267,7 @@ function Admin() {
                 {form.imagenes.map((url, index) => (
                   <div key={index} className="admin-imagen-preview-item">
                     <img src={url} alt={`Imagen ${index + 1}`} />
-                    <button 
-                      type="button" 
-                      className="btn-eliminar-imagen"
-                      onClick={() => eliminarImagen(index)}
-                    >
-                      ✕
-                    </button>
+                    <button type="button" className="btn-eliminar-imagen" onClick={() => eliminarImagen(index)}>✕</button>
                   </div>
                 ))}
               </div>
@@ -380,32 +339,44 @@ function Admin() {
         </div>
       )}
 
-      {/* ====== MODAL DE RECORTE CORREGIDO ====== */}
+      {/* ====== MODAL DE RECORTE LIBRE ====== */}
       {cropModalAbierto && (
-        <div className="crop-modal-overlay">
-          <div className="crop-modal-box">
+        <div className="crop-modal-overlay" onClick={cancelarRecorte}>
+          <div className="crop-modal-box" onClick={e => e.stopPropagation()}>
             <div className="crop-modal-header">
               <h3>✂️ Recortar imagen</h3>
               <button className="crop-modal-close" onClick={cancelarRecorte}>✕</button>
             </div>
             <div className="crop-modal-body">
-              <p className="crop-modal-hint">Selecciona el área que quieres mostrar en la tarjeta de productos</p>
+              <p className="crop-modal-hint">Selecciona el área que quieres mostrar</p>
               {imagenParaRecortar && (
-                <div className="crop-container">
+                <div style={{ 
+                  display: 'flex', 
+                  justifyContent: 'center', 
+                  alignItems: 'center',
+                  width: '100%',
+                  maxHeight: '60vh',
+                  overflow: 'hidden'
+                }}>
                   <ReactCrop
                     crop={crop}
                     onChange={c => setCrop(c)}
-                    aspect={1}
-                    circularCrop={false}
                     keepSelection={true}
-                    minWidth={10}
-                    minHeight={10}
+                    minWidth={20}
+                    minHeight={20}
+                    style={{
+                      maxWidth: '100%',
+                      maxHeight: '60vh'
+                    }}
                   >
                     <img 
                       src={imagenParaRecortar} 
                       alt="Recortar" 
-                      className="crop-image" 
-                      style={{ maxWidth: '100%', maxHeight: '60vh' }}
+                      style={{ 
+                        maxWidth: '100%', 
+                        maxHeight: '60vh',
+                        objectFit: 'contain'
+                      }}
                     />
                   </ReactCrop>
                 </div>
