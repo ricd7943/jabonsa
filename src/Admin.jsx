@@ -89,7 +89,6 @@ function Admin() {
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
 
-      // Calcular las coordenadas reales del recorte
       const { x, y, width, height } = croppedAreaPixels;
       
       canvas.width = width;
@@ -349,7 +348,7 @@ function Admin() {
         </div>
       )}
 
-      {/* ====== MODAL DE RECORTE CON REACT-EASY-CROP ====== */}
+      {/* ====== MODAL DE RECORTE CON REACT-EASY-CROP (RECORTE LIBRE) ====== */}
       {cropModalAbierto && (
         <div className="crop-modal-overlay">
           <div className="crop-modal-box" onClick={e => e.stopPropagation()}>
@@ -365,7 +364,7 @@ function Admin() {
                     image={imagenParaRecortar}
                     crop={crop}
                     zoom={zoom}
-                    aspect={1}
+                    aspect={undefined}  // ← RECORTE LIBRE
                     onCropChange={setCrop}
                     onZoomChange={setZoom}
                     onCropComplete={onCropComplete}
