@@ -39,7 +39,7 @@ function App() {
   const INSTAGRAM = "https://www.instagram.com/sarita_aesthetic_treatments";
   const EMAIL = "mailto:sarayaelnaranjo5@gmail.com";
 
- const categorias = [
+const categorias = [
   { id: 'todos', nombre: 'Todos', emoji: '✨', palabrasClave: [] },
   { id: 'jabones', nombre: 'Jabones', emoji: '🧼', palabrasClave: ['jabon', 'jabón', 'jabones'] },
   { id: 'exfoliantes', nombre: 'Exfoliantes', emoji: '✨', palabrasClave: ['exfoliante', 'corporal', 'cafe', 'café', 'frutos'] },
@@ -47,6 +47,7 @@ function App() {
   { id: 'perfumes', nombre: 'Perfumes', emoji: '🌸', palabrasClave: ['perfume', 'esencia'] },
   { id: 'regalos', nombre: 'Regalos', emoji: '🎁', palabrasClave: ['regalo', 'set', 'kit', 'pack', 'bandeja'] },
 ];
+
   useEffect(() => {
     const move = (e) => setCursorPos({ x: e.clientX, y: e.clientY });
     window.addEventListener('mousemove', move);
