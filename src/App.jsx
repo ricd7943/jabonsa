@@ -170,7 +170,7 @@ function App() {
         };
       });
       
-      setProductos(data);
+     setProductos(data.reverse());
       console.log("✅ Productos procesados:", data.length);
     } catch (err) { 
       console.error("❌ Error fetchProductos:", err); 
