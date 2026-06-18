@@ -39,7 +39,7 @@ const ProductoSchema = new mongoose.Schema({
   descripcion: String,
   precio: String,
   emoji: String,
-  imagen: String,
+  imagenes: { type: [String], default: [] },  // ← CAMBIO IMPORTANTE
   activo: { type: Boolean, default: true }
 });
 const Producto = mongoose.model('Producto', ProductoSchema);
