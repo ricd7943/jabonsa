@@ -297,26 +297,11 @@ body { font-family: Georgia, 'Times New Roman', serif; color: #1a1a1a; backgroun
 
 .sd-card:hover { border-color: #c97a8a; transform: translateY(-4px); box-shadow: 0 12px 40px rgba(201,122,138,0.15); }
 
-/* ====== SOLUCIÓN DEFINITIVA: CONTAINER CON PROPORCIÓN 1:1 ====== */
-.sd-card-img-wrap { 
-  position: relative; 
-  width: 100%;
-  aspect-ratio: 1 / 1; /* ← Cuadrado perfecto, se adapta al ancho */
-  overflow: hidden; 
-  cursor: pointer; 
-  background-color: #f5ede8;
-}
-
-.sd-card-img { 
-  width: 100%; 
-  height: 100%; 
-  object-fit: cover; 
-  object-position: center; 
-  transition: transform 0.5s ease; 
-}
-
+/* ====== ESTILOS ORIGINALES DE IMÁGENES (LOS QUE FUNCIONABAN) ====== */
+.sd-card-img-wrap { position: relative; height: 220px; overflow: hidden; cursor: pointer; }
+.sd-card-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
 .sd-card:hover .sd-card-img { transform: scale(1.05); }
-.sd-card-icon { font-size: 48px; display: flex; align-items: center; justify-content: center; height: 100%; background: #f5ede8; }
+.sd-card-icon { font-size: 48px; display: flex; align-items: center; justify-content: center; height: 100%; background: #fdf0f5; }
 
 .sd-card-overlay {
   position: absolute; top: 0; left: 0; right: 0; bottom: 0;
@@ -528,42 +513,16 @@ body { font-family: Georgia, 'Times New Roman', serif; color: #1a1a1a; backgroun
 .pedido-nombre { font-size: 14px; color: #c97a8a; }
 .pedido-fecha { font-size: 12px; color: #8a7f72; }
 
-/* ====== MODAL ====== */
+/* ====== MODAL ORIGINAL ====== */
 .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 500; display: flex; align-items: center; justify-content: center; padding: 1rem; }
 
 .modal-box { background: white; max-width: 750px; width: 100%; display: grid; grid-template-columns: 1fr 1fr; position: relative; border-radius: 20px; overflow: hidden; max-height: 90vh; }
 
 .modal-close { position: absolute; top: 1rem; right: 1rem; background: #c97a8a; color: white; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 14px; z-index: 10; }
 
-.modal-img-wrap { 
-  overflow: hidden; 
-  background-color: #f5ede8;
-  aspect-ratio: 1 / 1;
-}
-
-.modal-img { 
-  width: 100%; 
-  height: 100%; 
-  object-fit: cover; 
-  object-position: center;
-  background-color: #f5ede8; 
-}
-
-.modal-img-principal {
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  overflow: hidden;
-  background-color: #f5ede8;
-}
-
-.modal-img-principal img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-}
-
-.modal-emoji { font-size: 80px; display: flex; align-items: center; justify-content: center; background: #f5ede8; height: 100%; aspect-ratio: 1 / 1; }
+.modal-img-wrap { overflow: hidden; }
+.modal-img { width: 100%; height: 100%; object-fit: cover; min-height: 350px; }
+.modal-emoji { font-size: 80px; display: flex; align-items: center; justify-content: center; background: #fde8ed; height: 100%; min-height: 350px; }
 
 .modal-info { padding: 2rem; display: flex; flex-direction: column; gap: 0.75rem; overflow-y: auto; }
 .modal-tag { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #c97a8a; background: #fde8ed; padding: 0.25rem 0.75rem; border-radius: 20px; display: inline-block; width: fit-content; }
@@ -598,7 +557,6 @@ body { font-family: Georgia, 'Times New Roman', serif; color: #1a1a1a; backgroun
   cursor: pointer;
   border: 2px solid transparent;
   transition: border-color 0.3s;
-  background-color: #f5ede8;
 }
 
 .modal-thumbnail:hover {
@@ -774,8 +732,7 @@ body { font-family: Georgia, 'Times New Roman', serif; color: #1a1a1a; backgroun
   .sd-section { padding: 3rem 1rem; }
   .sd-cards { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
   .modal-box { grid-template-columns: 1fr; }
-  .modal-img-wrap { aspect-ratio: 1 / 1; }
-  .modal-img-principal { aspect-ratio: 1 / 1; }
+  .modal-img { min-height: 200px; }
   .carrito-panel { width: 100%; right: -100%; }
   .carrito-panel.abierto { right: 0; }
   .sd-hero h1 { font-size: 32px; }
