@@ -365,7 +365,7 @@ function Admin() {
                     image={imagenParaRecortar}
                     crop={crop}
                     zoom={zoom}
-                    aspect={1}
+                    aspect={undefined}
                     onCropChange={setCrop}
                     onZoomChange={setZoom}
                     onCropComplete={onCropComplete}
