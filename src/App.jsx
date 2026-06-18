@@ -133,66 +133,71 @@ const categorias = [
     } catch (err) { console.error(err); }
   };
 
-  const fetchProductos = async () => {
-    try {
-      setCargando(true);
-      const res = await fetch(`${API}/productos`);
-      let data = await res.json();
+ const fetchProductos = async () => {
+  try {
+    setCargando(true);
+    const res = await fetch(`${API}/productos`);
+    let data = await res.json();
+    
+    console.log("📦 Productos desde API:", data);
+    
+    // Asignar categorías con prioridad
+    data = data.map(prod => {
+      const nombreLower = (prod.nombre || '').toLowerCase();
+      const descLower = (prod.descripcion || '').toLowerCase();
       
-      console.log("📦 Productos desde API:", data);
+      let categoriaAsignada = 'todos';
+      let prioridad = -1;
       
-      // Asignar categorías según palabras clave
-      data = data.map(prod => {
-        const nombreLower = (prod.nombre || '').toLowerCase();
-        const descLower = (prod.descripcion || '').toLowerCase();
+      for (const cat of categorias) {
+        if (cat.id === 'todos') continue;
         
-        // Buscar en qué categoría cae
-        let categoriaAsignada = 'todos';
+        let prioridadCat = 0;
+        if (cat.id === 'jabones') prioridadCat = 10;
+        else if (cat.id === 'exfoliantes') prioridadCat = 5;
+        else if (cat.id === 'cremas') prioridadCat = 8;
+        else if (cat.id === 'perfumes') prioridadCat = 7;
+        else if (cat.id === 'regalos') prioridadCat = 6;
         
-        for (const cat of categorias) {
-          if (cat.id === 'todos') continue;
-          
-          for (const palabra of cat.palabrasClave) {
-            if (nombreLower.includes(palabra) || descLower.includes(palabra)) {
+        for (const palabra of cat.palabrasClave) {
+          if (nombreLower.includes(palabra) || descLower.includes(palabra)) {
+            if (prioridadCat > prioridad) {
+              prioridad = prioridadCat;
               categoriaAsignada = cat.id;
-              break;
             }
+            break;
           }
-          if (categoriaAsignada !== 'todos') break;
         }
-        
-        console.log(`Producto: "${prod.nombre}" → Categoría: ${categoriaAsignada}`);
-        
-        return { 
-          ...prod, 
-          categoria: categoriaAsignada,
-          emoji: prod.emoji || '🧼',
-          descripcion: prod.descripcion || 'Jabón artesanal 100% natural'
-        };
-      });
+      }
       
+      console.log(`Producto: "${prod.nombre}" → Categoría: ${categoriaAsignada}`);
+      
+      return { 
+        ...prod, 
+        categoria: categoriaAsignada,
+        emoji: prod.emoji || '🧼',
+        descripcion: prod.descripcion || 'Jabón artesanal 100% natural'
+      };
+    });
+    
     // ====== PRODUCTO FIJO SIEMPRE PRIMERO ======
-const nombreFijo = "Jabones artesanales premium";
+    const nombreFijo = "Jabones artesanales premium";
 
-data.sort((a, b) => {
-  // Si el producto A es el fijo, va primero
-  if (a.nombre === nombreFijo) return -1;
-  // Si el producto B es el fijo, va primero
-  if (b.nombre === nombreFijo) return 1;
-  // Si no, ordenar por fecha (nuevos primero usando la propiedad _id)
-  // Los _id de MongoDB tienen timestamp, los más nuevos son más grandes
-  return b._id.localeCompare(a._id);
-});
+    data.sort((a, b) => {
+      if (a.nombre === nombreFijo) return -1;
+      if (b.nombre === nombreFijo) return 1;
+      return b._id.localeCompare(a._id);
+    });
 
-setProductos(data);
-console.log("✅ Productos procesados:", data.length);
-// ===========================================
-    } catch (err) { 
-      console.error("❌ Error fetchProductos:", err); 
-    } finally {
-      setCargando(false);
-    }
-  };
+    setProductos(data);
+    console.log("✅ Productos procesados:", data.length);
+    // ===========================================
+  } catch (err) { 
+    console.error("❌ Error fetchProductos:", err); 
+  } finally {
+    setCargando(false);
+  }
+};
 
   useEffect(() => { 
     fetchCompras(); 
