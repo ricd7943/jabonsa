@@ -20,13 +20,13 @@ function Admin() {
   const [vista, setVista] = useState('productos');
   const [subiendo, setSubiendo] = useState(false);
 
-  // Estados para el recorte MANUAL
+  // Estados para recorte manual con Canvas
   const [imagenParaRecortar, setImagenParaRecortar] = useState(null);
   const [cropModalAbierto, setCropModalAbierto] = useState(false);
-  const [recorte, setRecorte] = useState({ x: 0, y: 0, w: 0, h: 0 });
+  const [crop, setCrop] = useState({ x: 0, y: 0, width: 0, height: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [startPos, setStartPos] = useState({ x: 0, y: 0 });
-  const canvasRef = useRef(null);
+  const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
   const imgRef = useRef(null);
 
   const login = async () => {
@@ -77,50 +77,55 @@ function Admin() {
     }
   };
 
-  // ====== RECORTE MANUAL CON CANVAS ======
+  // ====== RECORTE CON CANVAS ======
   const abrirModalRecorte = (e) => {
     const file = e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = () => {
-      setImagenParaRecortar(reader.result);
-      setRecorte({ x: 0, y: 0, w: 0, h: 0 });
-      setCropModalAbierto(true);
+      const img = new Image();
+      img.onload = () => {
+        setImageSize({ width: img.width, height: img.height });
+        setImagenParaRecortar(reader.result);
+        setCrop({ x: 0, y: 0, width: 0, height: 0 });
+        setCropModalAbierto(true);
+      };
+      img.src = reader.result;
     };
     reader.readAsDataURL(file);
     e.target.value = '';
   };
 
-  const iniciarRecorte = (e) => {
+  const handleMouseDown = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const x = (e.clientX - rect.left) / rect.width * 100;
+    const y = (e.clientY - rect.top) / rect.height * 100;
     setIsDragging(true);
     setStartPos({ x, y });
-    setRecorte({ x, y, w: 0, h: 0 });
+    setCrop({ x, y, width: 0, height: 0 });
   };
 
-  const moverRecorte = (e) => {
+  const handleMouseMove = (e) => {
     if (!isDragging) return;
     const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    const w = x - startPos.x;
-    const h = y - startPos.y;
-    setRecorte({
-      x: w > 0 ? startPos.x : x,
-      y: h > 0 ? startPos.y : y,
-      w: Math.abs(w),
-      h: Math.abs(h)
+    const x = (e.clientX - rect.left) / rect.width * 100;
+    const y = (e.clientY - rect.top) / rect.height * 100;
+    const width = x - startPos.x;
+    const height = y - startPos.y;
+    setCrop({
+      x: width > 0 ? startPos.x : x,
+      y: height > 0 ? startPos.y : y,
+      width: Math.abs(width),
+      height: Math.abs(height)
     });
   };
 
-  const terminarRecorte = () => {
+  const handleMouseUp = () => {
     setIsDragging(false);
   };
 
   const aplicarRecorte = async () => {
-    if (!imagenParaRecortar || recorte.w < 10 || recorte.h < 10) {
+    if (!imagenParaRecortar || crop.width < 1 || crop.height < 1) {
       setMensaje('❌ Selecciona un área válida para recortar');
       setTimeout(() => setMensaje(''), 3000);
       return;
@@ -132,23 +137,21 @@ function Admin() {
       img.src = imagenParaRecortar;
       await new Promise(resolve => img.onload = resolve);
 
+      // Calcular escala
+      const scaleX = img.width / 100;
+      const scaleY = img.height / 100;
+
+      const cropX = crop.x * scaleX;
+      const cropY = crop.y * scaleY;
+      const cropWidth = crop.width * scaleX;
+      const cropHeight = crop.height * scaleY;
+
       const canvas = document.createElement('canvas');
+      canvas.width = cropWidth;
+      canvas.height = cropHeight;
       const ctx = canvas.getContext('2d');
 
-      // Calcular escala
-      const imgElement = imgRef.current;
-      const scaleX = img.naturalWidth / imgElement.naturalWidth;
-      const scaleY = img.naturalHeight / imgElement.naturalHeight;
-
-      const cropX = recorte.x * scaleX;
-      const cropY = recorte.y * scaleY;
-      const cropW = recorte.w * scaleX;
-      const cropH = recorte.h * scaleY;
-
-      canvas.width = cropW;
-      canvas.height = cropH;
-
-      ctx.drawImage(img, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
+      ctx.drawImage(img, cropX, cropY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
 
       const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.9));
       const file = new File([blob], 'crop.jpg', { type: 'image/jpeg' });
@@ -167,7 +170,7 @@ function Admin() {
         setMensaje('✅ Imagen subida y recortada correctamente');
         setCropModalAbierto(false);
         setImagenParaRecortar(null);
-        setRecorte({ x: 0, y: 0, w: 0, h: 0 });
+        setCrop({ x: 0, y: 0, width: 0, height: 0 });
         setTimeout(() => setMensaje(''), 3000);
       }
     } catch (err) {
@@ -180,7 +183,7 @@ function Admin() {
   const cancelarRecorte = () => {
     setCropModalAbierto(false);
     setImagenParaRecortar(null);
-    setRecorte({ x: 0, y: 0, w: 0, h: 0 });
+    setCrop({ x: 0, y: 0, width: 0, height: 0 });
     setIsDragging(false);
   };
 
@@ -283,7 +286,7 @@ function Admin() {
             
             <div className="admin-upload">
               <label className="btn-upload">
-                {subiendo ? 'Subiendo...' : '📁 Subir imagen desde computador'}
+                {subiendo ? 'Subiendo...' : '📁 Subir imagen desde computador (con recorte)'}
                 <input
                   type="file"
                   accept="image/*"
@@ -371,7 +374,7 @@ function Admin() {
         </div>
       )}
 
-      {/* ====== MODAL DE RECORTE MANUAL ====== */}
+      {/* ====== MODAL DE RECORTE CON CANVAS ====== */}
       {cropModalAbierto && (
         <div className="crop-modal-overlay">
           <div className="crop-modal-box" onClick={e => e.stopPropagation()}>
@@ -395,10 +398,10 @@ function Admin() {
                       alignItems: 'center',
                       background: '#1a1a1a'
                     }}
-                    onMouseDown={iniciarRecorte}
-                    onMouseMove={moverRecorte}
-                    onMouseUp={terminarRecorte}
-                    onMouseLeave={terminarRecorte}
+                    onMouseDown={handleMouseDown}
+                    onMouseMove={handleMouseMove}
+                    onMouseUp={handleMouseUp}
+                    onMouseLeave={handleMouseUp}
                   >
                     <img
                       ref={imgRef}
@@ -413,15 +416,14 @@ function Admin() {
                       }}
                       draggable={false}
                     />
-                    {/* Cuadrado de recorte */}
-                    {recorte.w > 0 && recorte.h > 0 && (
+                    {crop.width > 0 && crop.height > 0 && (
                       <div
                         style={{
                           position: 'absolute',
-                          left: recorte.x,
-                          top: recorte.y,
-                          width: recorte.w,
-                          height: recorte.h,
+                          left: `${crop.x}%`,
+                          top: `${crop.y}%`,
+                          width: `${crop.width}%`,
+                          height: `${crop.height}%`,
                           border: '2px solid #c97a8a',
                           backgroundColor: 'rgba(201,122,138,0.2)',
                           pointerEvents: 'none',
