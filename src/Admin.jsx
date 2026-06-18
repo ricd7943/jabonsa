@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import ReactCrop from 'react-image-crop';
+import 'react-image-crop/dist/ReactCrop.css';
 import './Admin.css';
 
 const API = "https://jabonsa.onrender.com";
@@ -19,6 +21,11 @@ function Admin() {
   const [mensaje, setMensaje] = useState('');
   const [vista, setVista] = useState('productos');
   const [subiendo, setSubiendo] = useState(false);
+
+  // Estados para el recorte de imagen
+  const [crop, setCrop] = useState({ unit: '%', width: 100, height: 100, x: 0, y: 0 });
+  const [imagenParaRecortar, setImagenParaRecortar] = useState(null);
+  const [cropModalAbierto, setCropModalAbierto] = useState(false);
 
   const login = async () => {
     if (password.trim() === '') return;
@@ -68,20 +75,53 @@ function Admin() {
     }
   };
 
-  const subirImagen = async (archivo) => {
+  // Función para recortar y subir la imagen
+  const recortarYSubir = async () => {
+    if (!imagenParaRecortar) return;
+    
     setSubiendo(true);
     try {
+      const canvas = document.createElement('canvas');
+      const image = new Image();
+      image.src = imagenParaRecortar;
+      await new Promise(resolve => image.onload = resolve);
+      
+      const scaleX = image.naturalWidth / 100;
+      const scaleY = image.naturalHeight / 100;
+      
+      canvas.width = crop.width * scaleX;
+      canvas.height = crop.height * scaleY;
+      const ctx = canvas.getContext('2d');
+      
+      ctx.drawImage(
+        image,
+        crop.x * scaleX,
+        crop.y * scaleY,
+        crop.width * scaleX,
+        crop.height * scaleY,
+        0,
+        0,
+        canvas.width,
+        canvas.height
+      );
+      
+      const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.9));
+      const file = new File([blob], 'crop.jpg', { type: 'image/jpeg' });
+      
       const formData = new FormData();
-      formData.append('imagen', archivo);
+      formData.append('imagen', file);
       const res = await fetch(`${API}/admin/subir-imagen`, {
         method: 'POST',
         headers: { 'Authorization': password },
         body: formData
       });
       const data = await res.json();
+      
       if (data.url) {
         setForm(f => ({ ...f, imagenes: [...f.imagenes, data.url] }));
-        setMensaje('✅ Imagen subida correctamente');
+        setMensaje('✅ Imagen subida y recortada correctamente');
+        setCropModalAbierto(false);
+        setImagenParaRecortar(null);
         setTimeout(() => setMensaje(''), 3000);
       }
     } catch (err) {
@@ -89,6 +129,25 @@ function Admin() {
       console.error(err);
     }
     setSubiendo(false);
+  };
+
+  // Función para cancelar el recorte
+  const cancelarRecorte = () => {
+    setCropModalAbierto(false);
+    setImagenParaRecortar(null);
+    setCrop({ unit: '%', width: 100, height: 100, x: 0, y: 0 });
+  };
+
+  // Función para seleccionar imagen y abrir el modal de recorte
+  const seleccionarImagenParaRecortar = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      setImagenParaRecortar(reader.result);
+      setCropModalAbierto(true);
+    };
+    reader.readAsDataURL(file);
   };
 
   const eliminarImagen = (index) => {
@@ -131,17 +190,11 @@ function Admin() {
     } catch (err) { console.error(err); }
   };
 
-  // FUNCIÓN REPARADA - Ahora carga correctamente cualquier producto
   const editarProducto = (prod) => {
-    // Asegurar que imagenes sea un array
     let imagenesArray = [];
-    
-    // Si el producto tiene imagenes (nuevo sistema)
     if (prod.imagenes && Array.isArray(prod.imagenes)) {
       imagenesArray = prod.imagenes;
-    } 
-    // Si el producto tiene imagen (sistema antiguo) pero no imagenes
-    else if (prod.imagen) {
+    } else if (prod.imagen) {
       imagenesArray = [prod.imagen];
     }
     
@@ -215,12 +268,12 @@ function Admin() {
             
             <div className="admin-upload">
               <label className="btn-upload">
-                {subiendo ? 'Subiendo...' : '📁 Subir imagen desde computador'}
+                {subiendo ? 'Subiendo...' : '📁 Subir imagen desde computador (con recorte)'}
                 <input
                   type="file"
                   accept="image/*"
                   style={{ display: 'none' }}
-                  onChange={e => e.target.files[0] && subirImagen(e.target.files[0])}
+                  onChange={seleccionarImagenParaRecortar}
                   disabled={subiendo}
                 />
               </label>
@@ -305,6 +358,41 @@ function Admin() {
                 </div>
               ))
             )}
+          </div>
+        </div>
+      )}
+
+      {/* ====== MODAL DE RECORTE ====== */}
+      {cropModalAbierto && (
+        <div className="crop-modal-overlay" onClick={cancelarRecorte}>
+          <div className="crop-modal-box" onClick={e => e.stopPropagation()}>
+            <div className="crop-modal-header">
+              <h3>✂️ Recortar imagen</h3>
+              <button className="crop-modal-close" onClick={cancelarRecorte}>✕</button>
+            </div>
+            <div className="crop-modal-body">
+              <p className="crop-modal-hint">Selecciona el área que quieres mostrar en la tarjeta de productos</p>
+              {imagenParaRecortar && (
+                <ReactCrop
+                  crop={crop}
+                  onChange={c => setCrop(c)}
+                  aspect={1}
+                  circularCrop={false}
+                >
+                  <img src={imagenParaRecortar} alt="Recortar" className="crop-image" />
+                </ReactCrop>
+              )}
+            </div>
+            <div className="crop-modal-footer">
+              <button className="btn-cancelar" onClick={cancelarRecorte}>Cancelar</button>
+              <button 
+                className="btn-guardar" 
+                onClick={recortarYSubir}
+                disabled={subiendo}
+              >
+                {subiendo ? 'Subiendo...' : '✅ Subir imagen recortada'}
+              </button>
+            </div>
           </div>
         </div>
       )}
