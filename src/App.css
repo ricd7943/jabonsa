@@ -297,9 +297,27 @@ body { font-family: Georgia, 'Times New Roman', serif; color: #1a1a1a; backgroun
 
 .sd-card:hover { border-color: #c97a8a; transform: translateY(-4px); box-shadow: 0 12px 40px rgba(201,122,138,0.15); }
 
-.sd-card-img-wrap { position: relative; height: 220px; overflow: hidden; cursor: pointer; }
-.sd-card-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
-.sd-card:hover .sd-card-img { transform: scale(1.05); }
+/* ====== CAMBIOS EN TARJETA DE PRODUCTO ====== */
+.sd-card-img-wrap { 
+  position: relative; 
+  height: 250px; 
+  overflow: hidden; 
+  cursor: pointer; 
+  background-color: #fdf0f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sd-card-img { 
+  width: 100%; 
+  height: 100%; 
+  object-fit: contain; 
+  object-position: center; 
+  transition: transform 0.5s ease; 
+}
+
+.sd-card:hover .sd-card-img { transform: scale(1.03); }
 .sd-card-icon { font-size: 48px; display: flex; align-items: center; justify-content: center; height: 100%; background: #fdf0f5; }
 
 .sd-card-overlay {
@@ -512,16 +530,46 @@ body { font-family: Georgia, 'Times New Roman', serif; color: #1a1a1a; backgroun
 .pedido-nombre { font-size: 14px; color: #c97a8a; }
 .pedido-fecha { font-size: 12px; color: #8a7f72; }
 
-/* MODAL */
+/* ====== CAMBIOS EN MODAL ====== */
 .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 500; display: flex; align-items: center; justify-content: center; padding: 1rem; }
 
 .modal-box { background: white; max-width: 750px; width: 100%; display: grid; grid-template-columns: 1fr 1fr; position: relative; border-radius: 20px; overflow: hidden; max-height: 90vh; }
 
 .modal-close { position: absolute; top: 1rem; right: 1rem; background: #c97a8a; color: white; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 14px; z-index: 10; }
 
-.modal-img-wrap { overflow: hidden; }
-.modal-img { width: 100%; height: 100%; object-fit: cover; min-height: 350px; }
-.modal-emoji { font-size: 80px; display: flex; align-items: center; justify-content: center; background: #fde8ed; height: 100%; min-height: 350px; }
+.modal-img-wrap { 
+  overflow: hidden; 
+  background-color: #fdf0f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-img { 
+  width: 100%; 
+  height: 100%; 
+  object-fit: contain; 
+  background-color: #fdf0f5; 
+  min-height: 350px; 
+}
+
+.modal-img-principal {
+  width: 100%;
+  height: 350px;
+  overflow: hidden;
+  background-color: #fdf0f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-img-principal img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.modal-emoji { font-size: 80px; display: flex; align-items: center; justify-content: center; background: #fdf0f5; height: 100%; min-height: 350px; }
 
 .modal-info { padding: 2rem; display: flex; flex-direction: column; gap: 0.75rem; overflow-y: auto; }
 .modal-tag { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #c97a8a; background: #fde8ed; padding: 0.25rem 0.75rem; border-radius: 20px; display: inline-block; width: fit-content; }
@@ -533,6 +581,53 @@ body { font-family: Georgia, 'Times New Roman', serif; color: #1a1a1a; backgroun
 .modal-precio { font-size: 24px; color: #c97a8a; font-weight: 400; }
 .modal-stock { background: #fff5f0; color: #ff6b6b; font-size: 13px; padding: 0.5rem 1rem; border-radius: 8px; border-left: 3px solid #ff6b6b; }
 .modal-btn { width: 100%; text-align: center; }
+
+/* GALERÍA EN EL MODAL */
+.modal-gallery {
+  width: 100%;
+}
+
+.modal-thumbnails {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.modal-thumbnail {
+  width: 60px;
+  height: 60px;
+  flex-shrink: 0;
+  border-radius: 6px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: border-color 0.3s;
+}
+
+.modal-thumbnail:hover {
+  border-color: #c7a17a;
+}
+
+.modal-thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* INDICADOR DE MÚLTIPLES IMÁGENES */
+.sd-card-multi-badge {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  background: rgba(0,0,0,0.6);
+  color: white;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  backdrop-filter: blur(4px);
+}
 
 /* MENSAJE FLOTANTE */
 .sd-mensaje { position: fixed; bottom: 2rem; right: 2rem; background: linear-gradient(90deg, #c97a8a, #5ba4c8); color: white; padding: 1rem 1.5rem; font-size: 13px; letter-spacing: 1px; z-index: 999; border-radius: 25px; box-shadow: 0 4px 20px rgba(201,122,138,0.4); }
@@ -685,6 +780,7 @@ body { font-family: Georgia, 'Times New Roman', serif; color: #1a1a1a; backgroun
   .sd-cards { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
   .modal-box { grid-template-columns: 1fr; }
   .modal-img { min-height: 200px; }
+  .modal-img-principal { height: 200px; }
   .carrito-panel { width: 100%; right: -100%; }
   .carrito-panel.abierto { right: 0; }
   .sd-hero h1 { font-size: 32px; }
@@ -704,65 +800,4 @@ body { font-family: Georgia, 'Times New Roman', serif; color: #1a1a1a; backgroun
   .filtros-wrap { gap: 0.5rem; }
   .whatsapp-texto { display: none; }
   .whatsapp-btn { padding: 0.75rem; border-radius: 50%; }
-}
-
-/* Indicador de múltiples imágenes en tarjeta */
-.sd-card-multi-badge {
-  position: absolute;
-  bottom: 8px;
-  right: 8px;
-  background: rgba(0,0,0,0.6);
-  color: white;
-  font-size: 11px;
-  padding: 2px 8px;
-  border-radius: 12px;
-  backdrop-filter: blur(4px);
-}
-
-/* Galería en el modal */
-.modal-gallery {
-  width: 100%;
-}
-
-.modal-img-principal {
-  width: 100%;
-  height: 300px;
-  overflow: hidden;
-  border-radius: 12px;
-  background: #f8f5f0;
-}
-
-.modal-img-principal img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.modal-thumbnails {
-  display: flex;
-  gap: 8px;
-  margin-top: 10px;
-  overflow-x: auto;
-  padding-bottom: 4px;
-}
-
-.modal-thumbnail {
-  width: 60px;
-  height: 60px;
-  flex-shrink: 0;
-  border-radius: 6px;
-  overflow: hidden;
-  cursor: pointer;
-  border: 2px solid transparent;
-  transition: border-color 0.3s;
-}
-
-.modal-thumbnail:hover {
-  border-color: #c7a17a;
-}
-
-.modal-thumbnail img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
 }
