@@ -22,10 +22,11 @@ function Admin() {
   const [vista, setVista] = useState('productos');
   const [subiendo, setSubiendo] = useState(false);
 
-  // Estados para el recorte de imagen
+  // Estados para el recorte de imagen - CORREGIDOS
   const [crop, setCrop] = useState({ unit: '%', width: 100, height: 100, x: 0, y: 0 });
   const [imagenParaRecortar, setImagenParaRecortar] = useState(null);
   const [cropModalAbierto, setCropModalAbierto] = useState(false);
+  const [imagenOriginal, setImagenOriginal] = useState(null);
 
   const login = async () => {
     if (password.trim() === '') return;
@@ -75,7 +76,7 @@ function Admin() {
     }
   };
 
-  // Función para recortar y subir la imagen
+  // Función para recortar y subir la imagen - CORREGIDA
   const recortarYSubir = async () => {
     if (!imagenParaRecortar) return;
     
@@ -89,16 +90,21 @@ function Admin() {
       const scaleX = image.naturalWidth / 100;
       const scaleY = image.naturalHeight / 100;
       
-      canvas.width = crop.width * scaleX;
-      canvas.height = crop.height * scaleY;
+      const cropWidth = crop.width || 100;
+      const cropHeight = crop.height || 100;
+      const cropX = crop.x || 0;
+      const cropY = crop.y || 0;
+      
+      canvas.width = cropWidth * scaleX;
+      canvas.height = cropHeight * scaleY;
       const ctx = canvas.getContext('2d');
       
       ctx.drawImage(
         image,
-        crop.x * scaleX,
-        crop.y * scaleY,
-        crop.width * scaleX,
-        crop.height * scaleY,
+        cropX * scaleX,
+        cropY * scaleY,
+        cropWidth * scaleX,
+        cropHeight * scaleY,
         0,
         0,
         canvas.width,
@@ -120,8 +126,12 @@ function Admin() {
       if (data.url) {
         setForm(f => ({ ...f, imagenes: [...f.imagenes, data.url] }));
         setMensaje('✅ Imagen subida y recortada correctamente');
+        // Cerrar modal y limpiar
         setCropModalAbierto(false);
         setImagenParaRecortar(null);
+        setImagenOriginal(null);
+        // Resetear crop a valores por defecto
+        setCrop({ unit: '%', width: 100, height: 100, x: 0, y: 0 });
         setTimeout(() => setMensaje(''), 3000);
       }
     } catch (err) {
@@ -131,23 +141,31 @@ function Admin() {
     setSubiendo(false);
   };
 
-  // Función para cancelar el recorte
+  // Función para cancelar el recorte - CORREGIDA
   const cancelarRecorte = () => {
     setCropModalAbierto(false);
     setImagenParaRecortar(null);
+    setImagenOriginal(null);
+    // Resetear crop a valores por defecto
     setCrop({ unit: '%', width: 100, height: 100, x: 0, y: 0 });
   };
 
-  // Función para seleccionar imagen y abrir el modal de recorte
+  // Función para seleccionar imagen y abrir el modal de recorte - CORREGIDA
   const seleccionarImagenParaRecortar = (e) => {
     const file = e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = () => {
-      setImagenParaRecortar(reader.result);
+      const imgSrc = reader.result;
+      setImagenOriginal(imgSrc);
+      setImagenParaRecortar(imgSrc);
+      // Resetear crop al abrir
+      setCrop({ unit: '%', width: 100, height: 100, x: 0, y: 0 });
       setCropModalAbierto(true);
     };
     reader.readAsDataURL(file);
+    // Limpiar el input para permitir seleccionar el mismo archivo de nuevo
+    e.target.value = '';
   };
 
   const eliminarImagen = (index) => {
@@ -362,10 +380,10 @@ function Admin() {
         </div>
       )}
 
-      {/* ====== MODAL DE RECORTE ====== */}
+      {/* ====== MODAL DE RECORTE CORREGIDO ====== */}
       {cropModalAbierto && (
-        <div className="crop-modal-overlay" onClick={cancelarRecorte}>
-          <div className="crop-modal-box" onClick={e => e.stopPropagation()}>
+        <div className="crop-modal-overlay">
+          <div className="crop-modal-box">
             <div className="crop-modal-header">
               <h3>✂️ Recortar imagen</h3>
               <button className="crop-modal-close" onClick={cancelarRecorte}>✕</button>
@@ -373,14 +391,24 @@ function Admin() {
             <div className="crop-modal-body">
               <p className="crop-modal-hint">Selecciona el área que quieres mostrar en la tarjeta de productos</p>
               {imagenParaRecortar && (
-                <ReactCrop
-                  crop={crop}
-                  onChange={c => setCrop(c)}
-                  aspect={1}
-                  circularCrop={false}
-                >
-                  <img src={imagenParaRecortar} alt="Recortar" className="crop-image" />
-                </ReactCrop>
+                <div className="crop-container">
+                  <ReactCrop
+                    crop={crop}
+                    onChange={c => setCrop(c)}
+                    aspect={1}
+                    circularCrop={false}
+                    keepSelection={true}
+                    minWidth={10}
+                    minHeight={10}
+                  >
+                    <img 
+                      src={imagenParaRecortar} 
+                      alt="Recortar" 
+                      className="crop-image" 
+                      style={{ maxWidth: '100%', maxHeight: '60vh' }}
+                    />
+                  </ReactCrop>
+                </div>
               )}
             </div>
             <div className="crop-modal-footer">
