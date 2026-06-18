@@ -225,7 +225,39 @@ function App() {
           <div className="modal-box" onClick={e => e.stopPropagation()}>
             <button className="modal-close" onClick={() => setProductoSeleccionado(null)}>✕</button>
             <div className="modal-img-wrap">
-              {productoSeleccionado.imagen ? (
+              {productoSeleccionado.imagenes && productoSeleccionado.imagenes.length > 0 ? (
+                <div className="modal-gallery">
+                  <div className="modal-img-principal">
+                    <img 
+                      src={productoSeleccionado.imagenes[0]} 
+                      alt={productoSeleccionado.nombre} 
+                      className="modal-img" 
+                    />
+                  </div>
+                  {productoSeleccionado.imagenes.length > 1 && (
+                    <div className="modal-thumbnails">
+                      {productoSeleccionado.imagenes.map((img, idx) => (
+                        <div 
+                          key={idx} 
+                          className="modal-thumbnail"
+                          onClick={() => {
+                            const nuevasImagenes = [...productoSeleccionado.imagenes];
+                            const temp = nuevasImagenes[0];
+                            nuevasImagenes[0] = nuevasImagenes[idx];
+                            nuevasImagenes[idx] = temp;
+                            setProductoSeleccionado({
+                              ...productoSeleccionado,
+                              imagenes: nuevasImagenes
+                            });
+                          }}
+                        >
+                          <img src={img} alt={`${productoSeleccionado.nombre} - ${idx + 1}`} />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : productoSeleccionado.imagen ? (
                 <img src={productoSeleccionado.imagen} alt={productoSeleccionado.nombre} className="modal-img" />
               ) : (
                 <div className="modal-emoji">{productoSeleccionado.emoji || '🧼'}</div>
@@ -269,7 +301,13 @@ function App() {
             <div className="carrito-items">
               {carrito.map(item => (
                 <div className="carrito-item" key={item._id}>
-                  {item.imagen ? <img src={item.imagen} alt={item.nombre} /> : <span style={{ fontSize: '28px' }}>{item.emoji || '🧼'}</span>}
+                  {item.imagenes && item.imagenes.length > 0 ? (
+                    <img src={item.imagenes[0]} alt={item.nombre} />
+                  ) : item.imagen ? (
+                    <img src={item.imagen} alt={item.nombre} />
+                  ) : (
+                    <span style={{ fontSize: '28px' }}>{item.emoji || '🧼'}</span>
+                  )}
                   <div className="carrito-item-info">
                     <strong>{item.nombre}</strong>
                     <span>{item.precio}</span>
@@ -453,11 +491,21 @@ function App() {
               productosFiltrados.map((prod, index) => (
                 <div className="sd-card" key={prod._id} style={{ animationDelay: `${index * 0.1}s` }}>
                   <div className="sd-card-img-wrap" onClick={() => setProductoSeleccionado(prod)}>
-                    {prod.imagen ? (
+                    {prod.imagenes && prod.imagenes.length > 0 ? (
+                      <img src={prod.imagenes[0]} alt={prod.nombre} className="sd-card-img" />
+                    ) : prod.imagen ? (
                       <img src={prod.imagen} alt={prod.nombre} className="sd-card-img" />
                     ) : (
                       <div className="sd-card-icon">{prod.emoji || '🧼'}</div>
                     )}
+                    
+                    {/* Indicador de múltiples imágenes */}
+                    {prod.imagenes && prod.imagenes.length > 1 && (
+                      <div className="sd-card-multi-badge">
+                        <span>📸 {prod.imagenes.length}</span>
+                      </div>
+                    )}
+                    
                     <div className="sd-card-overlay"><span>Ver detalle</span></div>
                     <div className="sd-card-badge">Botánico</div>
                     {index === 0 && <div className="sd-card-hot">🔥 Más vendido</div>}
