@@ -297,26 +297,21 @@ body { font-family: Georgia, 'Times New Roman', serif; color: #1a1a1a; backgroun
 
 .sd-card:hover { border-color: #c97a8a; transform: translateY(-4px); box-shadow: 0 12px 40px rgba(201,122,138,0.15); }
 
-/* ====== SOLUCIÓN FINAL - IMÁGENES CON CONTAIN Y BORDES ELEGANTES ====== */
+/* ====== SOLUCIÓN DEFINITIVA: IMAGEN OCUPA TODO SIN DEFORMAR ====== */
 .sd-card-img-wrap { 
   position: relative; 
   height: 250px; 
   overflow: hidden; 
   cursor: pointer; 
   background-color: #f5ede8;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.5rem;
 }
 
 .sd-card-img { 
   width: 100%; 
   height: 100%; 
-  object-fit: contain; 
+  object-fit: cover; 
   object-position: center; 
   transition: transform 0.5s ease; 
-  background-color: #f5ede8;
 }
 
 .sd-card:hover .sd-card-img { transform: scale(1.05); }
@@ -532,7 +527,7 @@ body { font-family: Georgia, 'Times New Roman', serif; color: #1a1a1a; backgroun
 .pedido-nombre { font-size: 14px; color: #c97a8a; }
 .pedido-fecha { font-size: 12px; color: #8a7f72; }
 
-/* ====== MODAL CON CONTAIN Y FONDO ELEGANTE ====== */
+/* ====== MODAL CON COVER PARA LLENAR ====== */
 .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 500; display: flex; align-items: center; justify-content: center; padding: 1rem; }
 
 .modal-box { background: white; max-width: 750px; width: 100%; display: grid; grid-template-columns: 1fr 1fr; position: relative; border-radius: 20px; overflow: hidden; max-height: 90vh; }
@@ -542,16 +537,12 @@ body { font-family: Georgia, 'Times New Roman', serif; color: #1a1a1a; backgroun
 .modal-img-wrap { 
   overflow: hidden; 
   background-color: #f5ede8;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.5rem;
 }
 
 .modal-img { 
   width: 100%; 
   height: 100%; 
-  object-fit: contain; 
+  object-fit: cover; 
   object-position: center;
   background-color: #f5ede8; 
   min-height: 350px; 
@@ -562,16 +553,12 @@ body { font-family: Georgia, 'Times New Roman', serif; color: #1a1a1a; backgroun
   height: 350px;
   overflow: hidden;
   background-color: #f5ede8;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.5rem;
 }
 
 .modal-img-principal img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   object-position: center;
 }
 
