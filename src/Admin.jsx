@@ -26,8 +26,8 @@ function Admin() {
   const [crop, setCrop] = useState({ x: 0, y: 0, width: 0, height: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [startPos, setStartPos] = useState({ x: 0, y: 0 });
-  const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
   const imgRef = useRef(null);
+  const containerRef = useRef(null);
 
   const login = async () => {
     if (password.trim() === '') return;
@@ -83,23 +83,18 @@ function Admin() {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = () => {
-      const img = new Image();
-      img.onload = () => {
-        setImageSize({ width: img.width, height: img.height });
-        setImagenParaRecortar(reader.result);
-        setCrop({ x: 0, y: 0, width: 0, height: 0 });
-        setCropModalAbierto(true);
-      };
-      img.src = reader.result;
+      setImagenParaRecortar(reader.result);
+      setCrop({ x: 0, y: 0, width: 0, height: 0 });
+      setCropModalAbierto(true);
     };
     reader.readAsDataURL(file);
     e.target.value = '';
   };
 
   const handleMouseDown = (e) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width * 100;
-    const y = (e.clientY - rect.top) / rect.height * 100;
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
     setIsDragging(true);
     setStartPos({ x, y });
     setCrop({ x, y, width: 0, height: 0 });
@@ -107,9 +102,9 @@ function Admin() {
 
   const handleMouseMove = (e) => {
     if (!isDragging) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width * 100;
-    const y = (e.clientY - rect.top) / rect.height * 100;
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
     const width = x - startPos.x;
     const height = y - startPos.y;
     setCrop({
@@ -137,14 +132,24 @@ function Admin() {
       img.src = imagenParaRecortar;
       await new Promise(resolve => img.onload = resolve);
 
-      // Calcular escala
-      const scaleX = img.width / 100;
-      const scaleY = img.height / 100;
+      // Obtener el tamaño visible de la imagen en el contenedor
+      const imgElement = imgRef.current;
+      const containerRect = containerRef.current.getBoundingClientRect();
+      const imgRect = imgElement.getBoundingClientRect();
+      
+      // Calcular la escala entre el tamaño visible y el tamaño real
+      const scaleX = img.naturalWidth / imgRect.width;
+      const scaleY = img.naturalHeight / imgRect.height;
 
-      const cropX = crop.x * scaleX;
-      const cropY = crop.y * scaleY;
-      const cropWidth = crop.width * scaleX;
-      const cropHeight = crop.height * scaleY;
+      // Calcular el offset de la imagen dentro del contenedor (por object-fit: contain)
+      const offsetX = (containerRect.width - imgRect.width) / 2;
+      const offsetY = (containerRect.height - imgRect.height) / 2;
+
+      // Calcular el recorte en coordenadas reales
+      const cropX = ((crop.x / 100) * containerRect.width - offsetX) * scaleX;
+      const cropY = ((crop.y / 100) * containerRect.height - offsetY) * scaleY;
+      const cropWidth = ((crop.width / 100) * containerRect.width) * scaleX;
+      const cropHeight = ((crop.height / 100) * containerRect.height) * scaleY;
 
       const canvas = document.createElement('canvas');
       canvas.width = cropWidth;
@@ -384,7 +389,7 @@ function Admin() {
             </div>
             <div className="crop-modal-body">
               <p className="crop-modal-hint">Haz clic y arrastra para seleccionar el área</p>
-              <div className="crop-container">
+              <div className="crop-container" ref={containerRef}>
                 {imagenParaRecortar && (
                   <div
                     style={{
@@ -396,7 +401,8 @@ function Admin() {
                       display: 'flex',
                       justifyContent: 'center',
                       alignItems: 'center',
-                      background: '#1a1a1a'
+                      background: '#1a1a1a',
+                      minHeight: '400px'
                     }}
                     onMouseDown={handleMouseDown}
                     onMouseMove={handleMouseMove}
