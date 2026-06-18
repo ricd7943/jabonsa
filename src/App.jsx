@@ -170,8 +170,22 @@ function App() {
         };
       });
       
-     setProductos(data.reverse());
-      console.log("✅ Productos procesados:", data.length);
+    // ====== PRODUCTO FIJO SIEMPRE PRIMERO ======
+const nombreFijo = "Jabones artesanales premium";
+
+data.sort((a, b) => {
+  // Si el producto A es el fijo, va primero
+  if (a.nombre === nombreFijo) return -1;
+  // Si el producto B es el fijo, va primero
+  if (b.nombre === nombreFijo) return 1;
+  // Si no, ordenar por fecha (nuevos primero usando la propiedad _id)
+  // Los _id de MongoDB tienen timestamp, los más nuevos son más grandes
+  return b._id.localeCompare(a._id);
+});
+
+setProductos(data);
+console.log("✅ Productos procesados:", data.length);
+// ===========================================
     } catch (err) { 
       console.error("❌ Error fetchProductos:", err); 
     } finally {
