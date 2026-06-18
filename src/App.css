@@ -287,17 +287,20 @@ body { font-family: Georgia, 'Times New Roman', serif; color: #1a1a1a; backgroun
   margin: 0 auto;
 }
 
+/* ====== SOLUCIÓN: Tarjetas con misma altura ====== */
 .sd-card {
   background: white;
   border: 1px solid #f0e8e8;
   border-radius: 16px;
   overflow: hidden;
   transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .sd-card:hover { border-color: #c97a8a; transform: translateY(-4px); box-shadow: 0 12px 40px rgba(201,122,138,0.15); }
 
-/* ====== SOLUCIÓN: Contenedor cuadrado con aspect-ratio ====== */
 .sd-card-img-wrap { 
   position: relative; 
   width: 100%;
@@ -305,7 +308,9 @@ body { font-family: Georgia, 'Times New Roman', serif; color: #1a1a1a; backgroun
   overflow: hidden; 
   cursor: pointer; 
   background-color: #fdf0f5;
+  flex-shrink: 0;
 }
+
 .sd-card-img { 
   width: 100%; 
   height: 100%; 
@@ -313,6 +318,7 @@ body { font-family: Georgia, 'Times New Roman', serif; color: #1a1a1a; backgroun
   object-position: center;
   transition: transform 0.5s ease; 
 }
+
 .sd-card:hover .sd-card-img { transform: scale(1.05); }
 .sd-card-icon { font-size: 48px; display: flex; align-items: center; justify-content: center; height: 100%; background: #fdf0f5; }
 
@@ -346,13 +352,13 @@ body { font-family: Georgia, 'Times New Roman', serif; color: #1a1a1a; backgroun
   50% { transform: scale(1.05); }
 }
 
-.sd-card-body { padding: 1.25rem; }
+.sd-card-body { padding: 1.25rem; flex: 1; display: flex; flex-direction: column; }
 .sd-card-stars { color: #f4a017; font-size: 13px; margin-bottom: 0.5rem; }
 .sd-card-reviews { font-size: 11px; color: #8a7f72; margin-left: 0.25rem; }
 .sd-card h3 { font-size: 14px; font-weight: 400; color: #1a1a1a; margin-bottom: 0.5rem; letter-spacing: 1px; }
-.sd-card p { font-size: 13px; color: #8a7f72; line-height: 1.6; margin-bottom: 1rem; }
+.sd-card p { font-size: 13px; color: #8a7f72; line-height: 1.6; margin-bottom: 1rem; flex: 1; }
 .sd-card-stock { font-size: 12px; color: #25d366; margin-bottom: 0.75rem; letter-spacing: 0.5px; }
-.sd-card-footer { display: flex; justify-content: space-between; align-items: center; }
+.sd-card-footer { display: flex; justify-content: space-between; align-items: center; margin-top: auto; }
 .sd-card-price { font-size: 16px; color: #c97a8a; font-weight: 400; }
 .sd-card-btn { padding: 0.5rem 1rem; font-size: 12px; }
 
