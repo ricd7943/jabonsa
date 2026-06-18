@@ -1,6 +1,4 @@
 import { useState, useRef } from 'react';
-import ReactCrop from 'react-image-crop';
-import 'react-image-crop/dist/ReactCrop.css';
 import './Admin.css';
 
 const API = "https://jabonsa.onrender.com";
@@ -21,9 +19,12 @@ function Admin() {
   const [mensaje, setMensaje] = useState('');
   const [vista, setVista] = useState('productos');
   const [subiendo, setSubiendo] = useState(false);
-  const [crop, setCrop] = useState({ unit: '%', width: 90, height: 90, x: 5, y: 5 });
-  const [imagenParaRecortar, setImagenParaRecortar] = useState(null);
+
+  // Estados para el recorte manual
+  const [imagenOriginal, setImagenOriginal] = useState(null);
+  const [recorte, setRecorte] = useState({ x: 0, y: 0, w: 0, h: 0 });
   const [cropModalAbierto, setCropModalAbierto] = useState(false);
+  const canvasRef = useRef(null);
   const imgRef = useRef(null);
 
   const login = async () => {
@@ -74,36 +75,46 @@ function Admin() {
     }
   };
 
-  const recortarYSubir = async () => {
-    if (!imagenParaRecortar || !imgRef.current) return;
+  // ====== RECORTE MANUAL (sin librerías) ======
+  const abrirModalRecorte = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      setImagenOriginal(reader.result);
+      setCropModalAbierto(true);
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+
+  const aplicarRecorte = async () => {
+    if (!imagenOriginal || !canvasRef.current) return;
     
     setSubiendo(true);
     try {
-      const image = imgRef.current;
-      const canvas = document.createElement('canvas');
+      const canvas = canvasRef.current;
       const ctx = canvas.getContext('2d');
+      const img = new Image();
+      img.src = imagenOriginal;
+      await new Promise(resolve => img.onload = resolve);
 
-      const scaleX = image.naturalWidth / 100;
-      const scaleY = image.naturalHeight / 100;
+      // Calcular el centro de la imagen
+      const centerX = img.width / 2;
+      const centerY = img.height / 2;
+      
+      // Tamaño del recorte (80% de la imagen original)
+      const cropSize = Math.min(img.width, img.height) * 0.8;
+      const x = centerX - cropSize / 2;
+      const y = centerY - cropSize / 2;
 
-      const cropX = (crop.x || 0) * scaleX;
-      const cropY = (crop.y || 0) * scaleY;
-      const cropWidth = (crop.width || 80) * scaleX;
-      const cropHeight = (crop.height || 80) * scaleY;
-
-      canvas.width = cropWidth;
-      canvas.height = cropHeight;
+      canvas.width = cropSize;
+      canvas.height = cropSize;
 
       ctx.drawImage(
-        image,
-        cropX,
-        cropY,
-        cropWidth,
-        cropHeight,
-        0,
-        0,
-        cropWidth,
-        cropHeight
+        img,
+        x, y, cropSize, cropSize,
+        0, 0, cropSize, cropSize
       );
 
       const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.9));
@@ -122,8 +133,7 @@ function Admin() {
         setForm(f => ({ ...f, imagenes: [...f.imagenes, data.url] }));
         setMensaje('✅ Imagen subida y recortada correctamente');
         setCropModalAbierto(false);
-        setImagenParaRecortar(null);
-        setCrop({ unit: '%', width: 90, height: 90, x: 5, y: 5 });
+        setImagenOriginal(null);
         setTimeout(() => setMensaje(''), 3000);
       }
     } catch (err) {
@@ -135,21 +145,7 @@ function Admin() {
 
   const cancelarRecorte = () => {
     setCropModalAbierto(false);
-    setImagenParaRecortar(null);
-    setCrop({ unit: '%', width: 90, height: 90, x: 5, y: 5 });
-  };
-
-  const seleccionarImagenParaRecortar = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      setImagenParaRecortar(reader.result);
-      setCrop({ unit: '%', width: 90, height: 90, x: 5, y: 5 });
-      setCropModalAbierto(true);
-    };
-    reader.readAsDataURL(file);
-    e.target.value = '';
+    setImagenOriginal(null);
   };
 
   const eliminarImagen = (index) => {
@@ -256,7 +252,7 @@ function Admin() {
                   type="file"
                   accept="image/*"
                   style={{ display: 'none' }}
-                  onChange={seleccionarImagenParaRecortar}
+                  onChange={abrirModalRecorte}
                   disabled={subiendo}
                 />
               </label>
@@ -339,7 +335,7 @@ function Admin() {
         </div>
       )}
 
-      {/* ====== MODAL DE RECORTE ====== */}
+      {/* ====== MODAL DE RECORTE MANUAL ====== */}
       {cropModalAbierto && (
         <div className="crop-modal-overlay">
           <div className="crop-modal-box" onClick={e => e.stopPropagation()}>
@@ -348,21 +344,13 @@ function Admin() {
               <button className="crop-modal-close" onClick={cancelarRecorte}>✕</button>
             </div>
             <div className="crop-modal-body">
-              <p className="crop-modal-hint">Selecciona el área que quieres mostrar</p>
+              <p className="crop-modal-hint">La imagen se recortará automáticamente al centro</p>
               <div className="crop-container">
-                {imagenParaRecortar && (
-                  <ReactCrop
-                    crop={crop}
-                    onChange={c => setCrop(c)}
-                    keepSelection={true}
-                    minWidth={20}
-                    minHeight={20}
-                  >
+                {imagenOriginal && (
+                  <div style={{ position: 'relative', width: '100%', maxHeight: '60vh', overflow: 'hidden', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                     <img
-                      ref={imgRef}
-                      src={imagenParaRecortar}
-                      alt="Recortar"
-                      className="crop-image-element"
+                      src={imagenOriginal}
+                      alt="Original"
                       style={{
                         maxWidth: '100%',
                         maxHeight: '60vh',
@@ -370,15 +358,29 @@ function Admin() {
                         display: 'block'
                       }}
                     />
-                  </ReactCrop>
+                    {/* Overlay de recorte (cuadrado central) */}
+                    <div style={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      width: '60%',
+                      height: '60%',
+                      border: '3px solid #c97a8a',
+                      borderRadius: '8px',
+                      boxShadow: '0 0 0 9999px rgba(0,0,0,0.5)',
+                      pointerEvents: 'none'
+                    }}></div>
+                  </div>
                 )}
+                <canvas ref={canvasRef} style={{ display: 'none' }} />
               </div>
             </div>
             <div className="crop-modal-footer">
               <button className="btn-cancelar" onClick={cancelarRecorte}>Cancelar</button>
               <button 
                 className="btn-guardar" 
-                onClick={recortarYSubir}
+                onClick={aplicarRecorte}
                 disabled={subiendo}
               >
                 {subiendo ? 'Subiendo...' : '✅ Subir imagen recortada'}
