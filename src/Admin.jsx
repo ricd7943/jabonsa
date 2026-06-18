@@ -21,9 +21,7 @@ function Admin() {
   const [mensaje, setMensaje] = useState('');
   const [vista, setVista] = useState('productos');
   const [subiendo, setSubiendo] = useState(false);
-
-  // Estados para el recorte
-  const [crop, setCrop] = useState({ unit: '%', width: 80, height: 80, x: 10, y: 10 });
+  const [crop, setCrop] = useState({ unit: '%', width: 90, height: 90, x: 5, y: 5 });
   const [imagenParaRecortar, setImagenParaRecortar] = useState(null);
   const [cropModalAbierto, setCropModalAbierto] = useState(false);
   const imgRef = useRef(null);
@@ -76,7 +74,6 @@ function Admin() {
     }
   };
 
-  // ====== RECORTE CON REACT-IMAGE-CROP (ESTABLE) ======
   const recortarYSubir = async () => {
     if (!imagenParaRecortar || !imgRef.current) return;
     
@@ -126,7 +123,7 @@ function Admin() {
         setMensaje('✅ Imagen subida y recortada correctamente');
         setCropModalAbierto(false);
         setImagenParaRecortar(null);
-        setCrop({ unit: '%', width: 80, height: 80, x: 10, y: 10 });
+        setCrop({ unit: '%', width: 90, height: 90, x: 5, y: 5 });
         setTimeout(() => setMensaje(''), 3000);
       }
     } catch (err) {
@@ -139,7 +136,7 @@ function Admin() {
   const cancelarRecorte = () => {
     setCropModalAbierto(false);
     setImagenParaRecortar(null);
-    setCrop({ unit: '%', width: 80, height: 80, x: 10, y: 10 });
+    setCrop({ unit: '%', width: 90, height: 90, x: 5, y: 5 });
   };
 
   const seleccionarImagenParaRecortar = (e) => {
@@ -148,7 +145,7 @@ function Admin() {
     const reader = new FileReader();
     reader.onload = () => {
       setImagenParaRecortar(reader.result);
-      setCrop({ unit: '%', width: 80, height: 80, x: 10, y: 10 });
+      setCrop({ unit: '%', width: 90, height: 90, x: 5, y: 5 });
       setCropModalAbierto(true);
     };
     reader.readAsDataURL(file);
@@ -254,7 +251,7 @@ function Admin() {
             
             <div className="admin-upload">
               <label className="btn-upload">
-                {subiendo ? 'Subiendo...' : '📁 Subir imagen desde computador (con recorte)'}
+                {subiendo ? 'Subiendo...' : '📁 Subir imagen desde computador'}
                 <input
                   type="file"
                   accept="image/*"
@@ -342,7 +339,7 @@ function Admin() {
         </div>
       )}
 
-      {/* ====== MODAL DE RECORTE CON REACT-IMAGE-CROP ====== */}
+      {/* ====== MODAL DE RECORTE ====== */}
       {cropModalAbierto && (
         <div className="crop-modal-overlay">
           <div className="crop-modal-box" onClick={e => e.stopPropagation()}>
@@ -360,7 +357,6 @@ function Admin() {
                     keepSelection={true}
                     minWidth={20}
                     minHeight={20}
-                    locked={false}
                   >
                     <img
                       ref={imgRef}
