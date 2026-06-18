@@ -1,3 +1,5 @@
+/* Admin.css completo con recorte de imágenes */
+
 .admin-login {
   min-height: 100vh;
   display: flex;
@@ -197,6 +199,7 @@
   font-size: 13px;
   letter-spacing: 1px;
 }
+
 .admin-upload {
   margin-bottom: 0.75rem;
 }
@@ -219,6 +222,7 @@
   border-color: #1a1a1a;
   color: #1a1a1a;
 }
+
 /* Previsualización de imágenes múltiples */
 .admin-imagenes-preview {
   display: flex;
@@ -277,4 +281,121 @@
   padding: 2px 8px;
   border-radius: 10px;
   margin-top: 2px;
+}
+
+/* ====== ESTILOS PARA EL MODAL DE RECORTE ====== */
+.crop-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.crop-modal-box {
+  background: #fff;
+  max-width: 700px;
+  width: 100%;
+  max-height: 90vh;
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.crop-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background: #1a1a1a;
+  color: white;
+}
+
+.crop-modal-header h3 {
+  font-size: 18px;
+  font-weight: 400;
+  margin: 0;
+}
+
+.crop-modal-close {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 22px;
+  cursor: pointer;
+  padding: 0 0.5rem;
+}
+
+.crop-modal-body {
+  padding: 1rem 1.5rem;
+  overflow-y: auto;
+  flex: 1;
+  background: #f8f5f0;
+}
+
+.crop-modal-hint {
+  font-size: 13px;
+  color: #8a7f72;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.crop-image {
+  max-width: 100%;
+  max-height: 60vh;
+  object-fit: contain;
+}
+
+.crop-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #f0e8e8;
+  background: #fff;
+}
+
+.crop-modal-footer .btn-guardar {
+  padding: 0.6rem 1.5rem;
+  background: #1a1a1a;
+  color: white;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  font-size: 13px;
+  font-family: Georgia, serif;
+  transition: all 0.3s;
+}
+
+.crop-modal-footer .btn-guardar:hover {
+  background: #333;
+}
+
+.crop-modal-footer .btn-guardar:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.crop-modal-footer .btn-cancelar {
+  padding: 0.6rem 1.5rem;
+  background: transparent;
+  color: #8a7f72;
+  border: 1px solid #d4c9b8;
+  border-radius: 25px;
+  cursor: pointer;
+  font-size: 13px;
+  font-family: Georgia, serif;
+  transition: all 0.3s;
+}
+
+.crop-modal-footer .btn-cancelar:hover {
+  border-color: #1a1a1a;
+  color: #1a1a1a;
 }
