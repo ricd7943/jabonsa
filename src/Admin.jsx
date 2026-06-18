@@ -13,7 +13,7 @@ function Admin() {
     descripcion: '', 
     precio: '', 
     emoji: '', 
-    imagenes: []  // ← CAMBIO: ahora es un array
+    imagenes: []
   });
   const [editando, setEditando] = useState(null);
   const [mensaje, setMensaje] = useState('');
@@ -68,7 +68,6 @@ function Admin() {
     }
   };
 
-  // Subir imagen y agregar al array
   const subirImagen = async (archivo) => {
     setSubiendo(true);
     try {
@@ -92,7 +91,6 @@ function Admin() {
     setSubiendo(false);
   };
 
-  // Eliminar una imagen del array
   const eliminarImagen = (index) => {
     setForm(f => ({
       ...f,
@@ -108,7 +106,7 @@ function Admin() {
       descripcion: form.descripcion,
       precio: form.precio,
       emoji: form.emoji,
-      imagenes: form.imagenes || []  // ← enviamos el array
+      imagenes: form.imagenes || []
     };
     
     try {
@@ -133,13 +131,26 @@ function Admin() {
     } catch (err) { console.error(err); }
   };
 
+  // FUNCIÓN REPARADA - Ahora carga correctamente cualquier producto
   const editarProducto = (prod) => {
+    // Asegurar que imagenes sea un array
+    let imagenesArray = [];
+    
+    // Si el producto tiene imagenes (nuevo sistema)
+    if (prod.imagenes && Array.isArray(prod.imagenes)) {
+      imagenesArray = prod.imagenes;
+    } 
+    // Si el producto tiene imagen (sistema antiguo) pero no imagenes
+    else if (prod.imagen) {
+      imagenesArray = [prod.imagen];
+    }
+    
     setForm({
-      nombre: prod.nombre,
-      descripcion: prod.descripcion,
-      precio: prod.precio,
-      emoji: prod.emoji,
-      imagenes: prod.imagenes || (prod.imagen ? [prod.imagen] : [])  // ← soporte para el campo antiguo
+      nombre: prod.nombre || '',
+      descripcion: prod.descripcion || '',
+      precio: prod.precio || '',
+      emoji: prod.emoji || '🧼',
+      imagenes: imagenesArray
     });
     setEditando(prod._id);
     setVista('productos');
@@ -181,12 +192,27 @@ function Admin() {
         <div className="admin-content">
           <div className="admin-form">
             <h2>{editando ? 'Editar Producto' : 'Nuevo Producto'}</h2>
-            <input placeholder="Emoji (ej: 🌹)" value={form.emoji} onChange={e => setForm({ ...form, emoji: e.target.value })} />
-            <input placeholder="Nombre del producto" value={form.nombre} onChange={e => setForm({ ...form, nombre: e.target.value })} />
-            <input placeholder="Descripción" value={form.descripcion} onChange={e => setForm({ ...form, descripcion: e.target.value })} />
-            <input placeholder="Precio (ej: $12.00 USD)" value={form.precio} onChange={e => setForm({ ...form, precio: e.target.value })} />
+            <input 
+              placeholder="Emoji (ej: 🌹)" 
+              value={form.emoji} 
+              onChange={e => setForm({ ...form, emoji: e.target.value })} 
+            />
+            <input 
+              placeholder="Nombre del producto" 
+              value={form.nombre} 
+              onChange={e => setForm({ ...form, nombre: e.target.value })} 
+            />
+            <input 
+              placeholder="Descripción" 
+              value={form.descripcion} 
+              onChange={e => setForm({ ...form, descripcion: e.target.value })} 
+            />
+            <input 
+              placeholder="Precio (ej: $12.00 USD)" 
+              value={form.precio} 
+              onChange={e => setForm({ ...form, precio: e.target.value })} 
+            />
             
-            {/* SECCIÓN DE MÚLTIPLES IMÁGENES */}
             <div className="admin-upload">
               <label className="btn-upload">
                 {subiendo ? 'Subiendo...' : '📁 Subir imagen desde computador'}
@@ -200,7 +226,6 @@ function Admin() {
               </label>
             </div>
 
-            {/* Previsualización de imágenes subidas */}
             {form.imagenes.length > 0 && (
               <div className="admin-imagenes-preview">
                 {form.imagenes.map((url, index) => (
@@ -219,34 +244,47 @@ function Admin() {
             )}
 
             <div className="admin-form-btns">
-              <button className="btn-guardar" onClick={guardarProducto}>{editando ? 'Actualizar' : 'Agregar Producto'}</button>
-              {editando && <button className="btn-cancelar" onClick={() => { setEditando(null); setForm({ nombre: '', descripcion: '', precio: '', emoji: '', imagenes: [] }); }}>Cancelar</button>}
+              <button className="btn-guardar" onClick={guardarProducto}>
+                {editando ? 'Actualizar' : 'Agregar Producto'}
+              </button>
+              {editando && (
+                <button className="btn-cancelar" onClick={() => { 
+                  setEditando(null); 
+                  setForm({ nombre: '', descripcion: '', precio: '', emoji: '', imagenes: [] }); 
+                }}>
+                  Cancelar
+                </button>
+              )}
             </div>
           </div>
 
           <div className="admin-lista">
             <h2>Productos ({productos.length})</h2>
-            {productos.length === 0 ? <p>No hay productos aún.</p> : productos.map(p => (
-              <div className="admin-item" key={p._id}>
-                {p.imagenes && p.imagenes.length > 0 ? (
-                  <img src={p.imagenes[0]} alt={p.nombre} style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '4px' }} />
-                ) : p.imagen ? (
-                  <img src={p.imagen} alt={p.nombre} style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '4px' }} />
-                ) : (
-                  <span className="admin-item-emoji">{p.emoji}</span>
-                )}
-                <div className="admin-item-info">
-                  <strong>{p.nombre}</strong>
-                  <span>{p.descripcion}</span>
-                  <span>{p.precio}</span>
-                  <span className="admin-item-badge">{p.imagenes?.length || 0} imágenes</span>
+            {productos.length === 0 ? (
+              <p>No hay productos aún.</p>
+            ) : (
+              productos.map(p => (
+                <div className="admin-item" key={p._id}>
+                  {p.imagenes && p.imagenes.length > 0 ? (
+                    <img src={p.imagenes[0]} alt={p.nombre} style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '4px' }} />
+                  ) : p.imagen ? (
+                    <img src={p.imagen} alt={p.nombre} style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '4px' }} />
+                  ) : (
+                    <span className="admin-item-emoji">{p.emoji}</span>
+                  )}
+                  <div className="admin-item-info">
+                    <strong>{p.nombre}</strong>
+                    <span>{p.descripcion}</span>
+                    <span>{p.precio}</span>
+                    <span className="admin-item-badge">{p.imagenes?.length || 0} imágenes</span>
+                  </div>
+                  <div className="admin-item-btns">
+                    <button onClick={() => editarProducto(p)}>Editar</button>
+                    <button className="btn-eliminar" onClick={() => eliminarProducto(p._id)}>Eliminar</button>
+                  </div>
                 </div>
-                <div className="admin-item-btns">
-                  <button onClick={() => editarProducto(p)}>Editar</button>
-                  <button className="btn-eliminar" onClick={() => eliminarProducto(p._id)}>Eliminar</button>
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       )}
@@ -255,14 +293,18 @@ function Admin() {
         <div className="admin-content">
           <h2>Pedidos recibidos ({compras.length})</h2>
           <div className="admin-lista">
-            {compras.map(c => (
-              <div className="admin-item" key={c._id}>
-                <div className="admin-item-info">
-                  <strong>{c.producto}</strong>
-                  <span>{new Date(c.fecha).toLocaleString()}</span>
+            {compras.length === 0 ? (
+              <p>No hay pedidos aún.</p>
+            ) : (
+              compras.map(c => (
+                <div className="admin-item" key={c._id}>
+                  <div className="admin-item-info">
+                    <strong>{c.producto}</strong>
+                    <span>{new Date(c.fecha).toLocaleString()}</span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       )}
