@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import Cropper from 'react-easy-crop';
+import { useState, useRef } from 'react';
 import './Admin.css';
 
 const API = "https://jabonsa.onrender.com";
@@ -21,12 +20,14 @@ function Admin() {
   const [vista, setVista] = useState('productos');
   const [subiendo, setSubiendo] = useState(false);
 
-  // Estados para el recorte
-  const [crop, setCrop] = useState({ x: 0, y: 0 });
-  const [zoom, setZoom] = useState(1);
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+  // Estados para el recorte MANUAL
   const [imagenParaRecortar, setImagenParaRecortar] = useState(null);
   const [cropModalAbierto, setCropModalAbierto] = useState(false);
+  const [recorte, setRecorte] = useState({ x: 0, y: 0, w: 0, h: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [startPos, setStartPos] = useState({ x: 0, y: 0 });
+  const canvasRef = useRef(null);
+  const imgRef = useRef(null);
 
   const login = async () => {
     if (password.trim() === '') return;
@@ -76,36 +77,78 @@ function Admin() {
     }
   };
 
-  // Función para crear el recorte
-  const createCropImage = async () => {
-    if (!imagenParaRecortar || !croppedAreaPixels) return;
-    
+  // ====== RECORTE MANUAL CON CANVAS ======
+  const abrirModalRecorte = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      setImagenParaRecortar(reader.result);
+      setRecorte({ x: 0, y: 0, w: 0, h: 0 });
+      setCropModalAbierto(true);
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+
+  const iniciarRecorte = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    setIsDragging(true);
+    setStartPos({ x, y });
+    setRecorte({ x, y, w: 0, h: 0 });
+  };
+
+  const moverRecorte = (e) => {
+    if (!isDragging) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const w = x - startPos.x;
+    const h = y - startPos.y;
+    setRecorte({
+      x: w > 0 ? startPos.x : x,
+      y: h > 0 ? startPos.y : y,
+      w: Math.abs(w),
+      h: Math.abs(h)
+    });
+  };
+
+  const terminarRecorte = () => {
+    setIsDragging(false);
+  };
+
+  const aplicarRecorte = async () => {
+    if (!imagenParaRecortar || recorte.w < 10 || recorte.h < 10) {
+      setMensaje('❌ Selecciona un área válida para recortar');
+      setTimeout(() => setMensaje(''), 3000);
+      return;
+    }
+
     setSubiendo(true);
     try {
-      const image = new Image();
-      image.src = imagenParaRecortar;
-      await new Promise(resolve => image.onload = resolve);
+      const img = new Image();
+      img.src = imagenParaRecortar;
+      await new Promise(resolve => img.onload = resolve);
 
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
 
-      // Calcular las coordenadas reales del recorte
-      const { x, y, width, height } = croppedAreaPixels;
-      
-      canvas.width = width;
-      canvas.height = height;
+      // Calcular escala
+      const imgElement = imgRef.current;
+      const scaleX = img.naturalWidth / imgElement.naturalWidth;
+      const scaleY = img.naturalHeight / imgElement.naturalHeight;
 
-      ctx.drawImage(
-        image,
-        x,
-        y,
-        width,
-        height,
-        0,
-        0,
-        width,
-        height
-      );
+      const cropX = recorte.x * scaleX;
+      const cropY = recorte.y * scaleY;
+      const cropW = recorte.w * scaleX;
+      const cropH = recorte.h * scaleY;
+
+      canvas.width = cropW;
+      canvas.height = cropH;
+
+      ctx.drawImage(img, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH);
 
       const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.9));
       const file = new File([blob], 'crop.jpg', { type: 'image/jpeg' });
@@ -124,9 +167,7 @@ function Admin() {
         setMensaje('✅ Imagen subida y recortada correctamente');
         setCropModalAbierto(false);
         setImagenParaRecortar(null);
-        setCroppedAreaPixels(null);
-        setCrop({ x: 0, y: 0 });
-        setZoom(1);
+        setRecorte({ x: 0, y: 0, w: 0, h: 0 });
         setTimeout(() => setMensaje(''), 3000);
       }
     } catch (err) {
@@ -139,27 +180,8 @@ function Admin() {
   const cancelarRecorte = () => {
     setCropModalAbierto(false);
     setImagenParaRecortar(null);
-    setCroppedAreaPixels(null);
-    setCrop({ x: 0, y: 0 });
-    setZoom(1);
-  };
-
-  const seleccionarImagenParaRecortar = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      setImagenParaRecortar(reader.result);
-      setCrop({ x: 0, y: 0 });
-      setZoom(1);
-      setCropModalAbierto(true);
-    };
-    reader.readAsDataURL(file);
-    e.target.value = '';
-  };
-
-  const onCropComplete = (croppedArea, croppedAreaPixels) => {
-    setCroppedAreaPixels(croppedAreaPixels);
+    setRecorte({ x: 0, y: 0, w: 0, h: 0 });
+    setIsDragging(false);
   };
 
   const eliminarImagen = (index) => {
@@ -261,12 +283,12 @@ function Admin() {
             
             <div className="admin-upload">
               <label className="btn-upload">
-                {subiendo ? 'Subiendo...' : '📁 Subir imagen desde computador (con recorte)'}
+                {subiendo ? 'Subiendo...' : '📁 Subir imagen desde computador'}
                 <input
                   type="file"
                   accept="image/*"
                   style={{ display: 'none' }}
-                  onChange={seleccionarImagenParaRecortar}
+                  onChange={abrirModalRecorte}
                   disabled={subiendo}
                 />
               </label>
@@ -349,7 +371,7 @@ function Admin() {
         </div>
       )}
 
-      {/* ====== MODAL DE RECORTE CON REACT-EASY-CROP ====== */}
+      {/* ====== MODAL DE RECORTE MANUAL ====== */}
       {cropModalAbierto && (
         <div className="crop-modal-overlay">
           <div className="crop-modal-box" onClick={e => e.stopPropagation()}>
@@ -358,34 +380,56 @@ function Admin() {
               <button className="crop-modal-close" onClick={cancelarRecorte}>✕</button>
             </div>
             <div className="crop-modal-body">
-              <p className="crop-modal-hint">Arrastra para seleccionar el área que quieres mostrar</p>
+              <p className="crop-modal-hint">Haz clic y arrastra para seleccionar el área</p>
               <div className="crop-container">
                 {imagenParaRecortar && (
-                  <Cropper
-                    image={imagenParaRecortar}
-                    crop={crop}
-                    zoom={zoom}
-                    aspect={undefined}
-                    onCropChange={setCrop}
-                    onZoomChange={setZoom}
-                    onCropComplete={onCropComplete}
-                    cropShape="rect"
-                    showGrid={true}
+                  <div
                     style={{
-                      containerStyle: {
-                        width: '100%',
-                        height: '100%',
-                        minHeight: '400px',
-                        maxHeight: '60vh',
-                        position: 'relative',
-                        background: '#e8e0d8'
-                      },
-                      mediaStyle: {
-                        maxWidth: '100%',
-                        maxHeight: '100%'
-                      }
+                      position: 'relative',
+                      width: '100%',
+                      maxHeight: '60vh',
+                      overflow: 'hidden',
+                      cursor: 'crosshair',
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      background: '#1a1a1a'
                     }}
-                  />
+                    onMouseDown={iniciarRecorte}
+                    onMouseMove={moverRecorte}
+                    onMouseUp={terminarRecorte}
+                    onMouseLeave={terminarRecorte}
+                  >
+                    <img
+                      ref={imgRef}
+                      src={imagenParaRecortar}
+                      alt="Recortar"
+                      style={{
+                        maxWidth: '100%',
+                        maxHeight: '60vh',
+                        objectFit: 'contain',
+                        display: 'block',
+                        userSelect: 'none'
+                      }}
+                      draggable={false}
+                    />
+                    {/* Cuadrado de recorte */}
+                    {recorte.w > 0 && recorte.h > 0 && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          left: recorte.x,
+                          top: recorte.y,
+                          width: recorte.w,
+                          height: recorte.h,
+                          border: '2px solid #c97a8a',
+                          backgroundColor: 'rgba(201,122,138,0.2)',
+                          pointerEvents: 'none',
+                          boxShadow: '0 0 0 9999px rgba(0,0,0,0.5)'
+                        }}
+                      />
+                    )}
+                  </div>
                 )}
               </div>
             </div>
@@ -393,7 +437,7 @@ function Admin() {
               <button className="btn-cancelar" onClick={cancelarRecorte}>Cancelar</button>
               <button 
                 className="btn-guardar" 
-                onClick={createCropImage}
+                onClick={aplicarRecorte}
                 disabled={subiendo}
               >
                 {subiendo ? 'Subiendo...' : '✅ Subir imagen recortada'}
