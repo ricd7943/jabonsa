@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import Cropper from 'react-easy-crop';
+import { useState, useRef } from 'react';
+import ReactCrop from 'react-image-crop';
+import 'react-image-crop/dist/ReactCrop.css';
 import './Admin.css';
 
 const API = "https://jabonsa.onrender.com";
@@ -22,11 +23,10 @@ function Admin() {
   const [subiendo, setSubiendo] = useState(false);
 
   // Estados para el recorte
-  const [crop, setCrop] = useState({ x: 0, y: 0 });
-  const [zoom, setZoom] = useState(1);
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+  const [crop, setCrop] = useState({ unit: '%', width: 80, height: 80, x: 10, y: 10 });
   const [imagenParaRecortar, setImagenParaRecortar] = useState(null);
   const [cropModalAbierto, setCropModalAbierto] = useState(false);
+  const imgRef = useRef(null);
 
   const login = async () => {
     if (password.trim() === '') return;
@@ -76,34 +76,37 @@ function Admin() {
     }
   };
 
-  // Función para crear el recorte
-  const createCropImage = async () => {
-    if (!imagenParaRecortar || !croppedAreaPixels) return;
+  // ====== RECORTE CON REACT-IMAGE-CROP (ESTABLE) ======
+  const recortarYSubir = async () => {
+    if (!imagenParaRecortar || !imgRef.current) return;
     
     setSubiendo(true);
     try {
-      const image = new Image();
-      image.src = imagenParaRecortar;
-      await new Promise(resolve => image.onload = resolve);
-
+      const image = imgRef.current;
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
 
-      const { x, y, width, height } = croppedAreaPixels;
-      
-      canvas.width = width;
-      canvas.height = height;
+      const scaleX = image.naturalWidth / 100;
+      const scaleY = image.naturalHeight / 100;
+
+      const cropX = (crop.x || 0) * scaleX;
+      const cropY = (crop.y || 0) * scaleY;
+      const cropWidth = (crop.width || 80) * scaleX;
+      const cropHeight = (crop.height || 80) * scaleY;
+
+      canvas.width = cropWidth;
+      canvas.height = cropHeight;
 
       ctx.drawImage(
         image,
-        x,
-        y,
-        width,
-        height,
+        cropX,
+        cropY,
+        cropWidth,
+        cropHeight,
         0,
         0,
-        width,
-        height
+        cropWidth,
+        cropHeight
       );
 
       const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.9));
@@ -123,9 +126,7 @@ function Admin() {
         setMensaje('✅ Imagen subida y recortada correctamente');
         setCropModalAbierto(false);
         setImagenParaRecortar(null);
-        setCroppedAreaPixels(null);
-        setCrop({ x: 0, y: 0 });
-        setZoom(1);
+        setCrop({ unit: '%', width: 80, height: 80, x: 10, y: 10 });
         setTimeout(() => setMensaje(''), 3000);
       }
     } catch (err) {
@@ -138,9 +139,7 @@ function Admin() {
   const cancelarRecorte = () => {
     setCropModalAbierto(false);
     setImagenParaRecortar(null);
-    setCroppedAreaPixels(null);
-    setCrop({ x: 0, y: 0 });
-    setZoom(1);
+    setCrop({ unit: '%', width: 80, height: 80, x: 10, y: 10 });
   };
 
   const seleccionarImagenParaRecortar = (e) => {
@@ -149,16 +148,11 @@ function Admin() {
     const reader = new FileReader();
     reader.onload = () => {
       setImagenParaRecortar(reader.result);
-      setCrop({ x: 0, y: 0 });
-      setZoom(1);
+      setCrop({ unit: '%', width: 80, height: 80, x: 10, y: 10 });
       setCropModalAbierto(true);
     };
     reader.readAsDataURL(file);
     e.target.value = '';
-  };
-
-  const onCropComplete = (croppedArea, croppedAreaPixels) => {
-    setCroppedAreaPixels(croppedAreaPixels);
   };
 
   const eliminarImagen = (index) => {
@@ -348,7 +342,7 @@ function Admin() {
         </div>
       )}
 
-      {/* ====== MODAL DE RECORTE CON REACT-EASY-CROP (RECORTE LIBRE) ====== */}
+      {/* ====== MODAL DE RECORTE CON REACT-IMAGE-CROP ====== */}
       {cropModalAbierto && (
         <div className="crop-modal-overlay">
           <div className="crop-modal-box" onClick={e => e.stopPropagation()}>
@@ -357,34 +351,30 @@ function Admin() {
               <button className="crop-modal-close" onClick={cancelarRecorte}>✕</button>
             </div>
             <div className="crop-modal-body">
-              <p className="crop-modal-hint">Arrastra para seleccionar el área que quieres mostrar</p>
+              <p className="crop-modal-hint">Selecciona el área que quieres mostrar</p>
               <div className="crop-container">
                 {imagenParaRecortar && (
-                  <Cropper
-                    image={imagenParaRecortar}
+                  <ReactCrop
                     crop={crop}
-                    zoom={zoom}
-                    aspect={undefined}  // ← RECORTE LIBRE
-                    onCropChange={setCrop}
-                    onZoomChange={setZoom}
-                    onCropComplete={onCropComplete}
-                    cropShape="rect"
-                    showGrid={true}
-                    style={{
-                      containerStyle: {
-                        width: '100%',
-                        height: '100%',
-                        minHeight: '400px',
-                        maxHeight: '60vh',
-                        position: 'relative',
-                        background: '#e8e0d8'
-                      },
-                      mediaStyle: {
+                    onChange={c => setCrop(c)}
+                    keepSelection={true}
+                    minWidth={20}
+                    minHeight={20}
+                    locked={false}
+                  >
+                    <img
+                      ref={imgRef}
+                      src={imagenParaRecortar}
+                      alt="Recortar"
+                      className="crop-image-element"
+                      style={{
                         maxWidth: '100%',
-                        maxHeight: '100%'
-                      }
-                    }}
-                  />
+                        maxHeight: '60vh',
+                        objectFit: 'contain',
+                        display: 'block'
+                      }}
+                    />
+                  </ReactCrop>
                 )}
               </div>
             </div>
@@ -392,7 +382,7 @@ function Admin() {
               <button className="btn-cancelar" onClick={cancelarRecorte}>Cancelar</button>
               <button 
                 className="btn-guardar" 
-                onClick={createCropImage}
+                onClick={recortarYSubir}
                 disabled={subiendo}
               >
                 {subiendo ? 'Subiendo...' : '✅ Subir imagen recortada'}
