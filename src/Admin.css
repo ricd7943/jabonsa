@@ -462,3 +462,13 @@
   border-color: #1a1a1a;
   color: #1a1a1a;
 }
+/* Estilo para el botón de recorte */
+.btn-recortar {
+  border-color: #c97a8a !important;
+  color: #c97a8a !important;
+}
+
+.btn-recortar:hover {
+  background: #c97a8a !important;
+  color: white !important;
+}

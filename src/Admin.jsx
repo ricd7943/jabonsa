@@ -77,6 +77,30 @@ function Admin() {
     }
   };
 
+  // ====== SUBIDA DIRECTA ======
+  const subirImagenDirecta = async (archivo) => {
+    setSubiendo(true);
+    try {
+      const formData = new FormData();
+      formData.append('imagen', archivo);
+      const res = await fetch(`${API}/admin/subir-imagen`, {
+        method: 'POST',
+        headers: { 'Authorization': password },
+        body: formData
+      });
+      const data = await res.json();
+      if (data.url) {
+        setForm(f => ({ ...f, imagenes: [...f.imagenes, data.url] }));
+        setMensaje('✅ Imagen subida correctamente');
+        setTimeout(() => setMensaje(''), 3000);
+      }
+    } catch (err) {
+      setMensaje('❌ Error al subir imagen');
+      console.error(err);
+    }
+    setSubiendo(false);
+  };
+
   // ====== RECORTE CON CANVAS ======
   const abrirModalRecorte = (e) => {
     const file = e.target.files[0];
@@ -132,20 +156,16 @@ function Admin() {
       img.src = imagenParaRecortar;
       await new Promise(resolve => img.onload = resolve);
 
-      // Obtener el tamaño visible de la imagen en el contenedor
       const imgElement = imgRef.current;
       const containerRect = containerRef.current.getBoundingClientRect();
       const imgRect = imgElement.getBoundingClientRect();
       
-      // Calcular la escala entre el tamaño visible y el tamaño real
       const scaleX = img.naturalWidth / imgRect.width;
       const scaleY = img.naturalHeight / imgRect.height;
 
-      // Calcular el offset de la imagen dentro del contenedor (por object-fit: contain)
       const offsetX = (containerRect.width - imgRect.width) / 2;
       const offsetY = (containerRect.height - imgRect.height) / 2;
 
-      // Calcular el recorte en coordenadas reales
       const cropX = ((crop.x / 100) * containerRect.width - offsetX) * scaleX;
       const cropY = ((crop.y / 100) * containerRect.height - offsetY) * scaleY;
       const cropWidth = ((crop.width / 100) * containerRect.width) * scaleX;
@@ -290,8 +310,18 @@ function Admin() {
             <input placeholder="Precio (ej: $12.00 USD)" value={form.precio} onChange={e => setForm({ ...form, precio: e.target.value })} />
             
             <div className="admin-upload">
-              <label className="btn-upload">
-                {subiendo ? 'Subiendo...' : '📁 Subir imagen desde computador (con recorte)'}
+              <label className="btn-upload" style={{ marginBottom: '0.5rem' }}>
+                {subiendo ? 'Subiendo...' : '📁 Subir imagen sin recortar'}
+                <input
+                  type="file"
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  onChange={e => e.target.files[0] && subirImagenDirecta(e.target.files[0])}
+                  disabled={subiendo}
+                />
+              </label>
+              <label className="btn-upload btn-recortar">
+                {subiendo ? 'Subiendo...' : '✂️ Subir imagen con recorte'}
                 <input
                   type="file"
                   accept="image/*"
