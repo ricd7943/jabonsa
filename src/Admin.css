@@ -1,5 +1,9 @@
-/* Admin.css completo con recorte de imágenes */
+/* ========================================
+   ADMIN.CSS - Sarielle Botanics
+   Versión limpia y definitiva
+   ======================================== */
 
+/* ----- LOGIN ----- */
 .admin-login {
   min-height: 100vh;
   display: flex;
@@ -55,7 +59,11 @@
   cursor: pointer;
 }
 
-.admin-wrap { min-height: 100vh; background: #faf9f7; }
+/* ----- HEADER ----- */
+.admin-wrap {
+  min-height: 100vh;
+  background: #faf9f7;
+}
 
 .admin-header {
   display: flex;
@@ -79,7 +87,10 @@
   margin-left: 0.5rem;
 }
 
-.admin-header nav { display: flex; gap: 1rem; }
+.admin-header nav {
+  display: flex;
+  gap: 1rem;
+}
 
 .admin-header nav button {
   background: transparent;
@@ -93,8 +104,12 @@
 }
 
 .admin-header nav button.active,
-.admin-header nav button:hover { border-color: white; color: white; }
+.admin-header nav button:hover {
+  border-color: white;
+  color: white;
+}
 
+/* ----- CONTENIDO PRINCIPAL ----- */
 .admin-content {
   max-width: 900px;
   margin: 2rem auto;
@@ -114,13 +129,17 @@
   margin-bottom: 1rem;
 }
 
+/* ----- FORMULARIO ----- */
 .admin-form {
   background: white;
   border: 0.5px solid #d4c9b8;
   padding: 1.5rem;
 }
 
-.admin-form h2 { font-size: 14px; margin-bottom: 1rem; }
+.admin-form h2 {
+  font-size: 14px;
+  margin-bottom: 1rem;
+}
 
 .admin-form input {
   width: 100%;
@@ -132,7 +151,10 @@
   outline: none;
 }
 
-.admin-form-btns { display: flex; gap: 0.5rem; }
+.admin-form-btns {
+  display: flex;
+  gap: 0.5rem;
+}
 
 .btn-guardar {
   flex: 1;
@@ -154,52 +176,7 @@
   cursor: pointer;
 }
 
-.admin-lista { display: flex; flex-direction: column; gap: 0.75rem; }
-
-.admin-item {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  background: white;
-  border: 0.5px solid #d4c9b8;
-  padding: 1rem;
-}
-
-.admin-item-emoji { font-size: 24px; }
-
-.admin-item-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-}
-
-.admin-item-info strong { font-size: 14px; font-weight: 500; }
-.admin-item-info span { font-size: 12px; color: #8a7f72; }
-
-.admin-item-btns { display: flex; gap: 0.5rem; }
-
-.admin-item-btns button {
-  padding: 0.4rem 0.8rem;
-  border: 0.5px solid #d4c9b8;
-  background: transparent;
-  font-size: 11px;
-  cursor: pointer;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.btn-eliminar { border-color: #c0392b !important; color: #c0392b; }
-
-.admin-mensaje {
-  background: #1a1a1a;
-  color: white;
-  text-align: center;
-  padding: 0.75rem;
-  font-size: 13px;
-  letter-spacing: 1px;
-}
-
+/* ----- UPLOAD ----- */
 .admin-upload {
   margin-bottom: 0.75rem;
 }
@@ -223,7 +200,7 @@
   color: #1a1a1a;
 }
 
-/* Previsualización de imágenes múltiples */
+/* ----- PREVISUALIZACIÓN DE IMÁGENES ----- */
 .admin-imagenes-preview {
   display: flex;
   gap: 10px;
@@ -283,7 +260,76 @@
   margin-top: 2px;
 }
 
-/* ====== ESTILOS PARA EL MODAL DE RECORTE ====== */
+/* ----- LISTA DE PRODUCTOS ----- */
+.admin-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.admin-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: white;
+  border: 0.5px solid #d4c9b8;
+  padding: 1rem;
+}
+
+.admin-item-emoji {
+  font-size: 24px;
+}
+
+.admin-item-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.admin-item-info strong {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.admin-item-info span {
+  font-size: 12px;
+  color: #8a7f72;
+}
+
+.admin-item-btns {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.admin-item-btns button {
+  padding: 0.4rem 0.8rem;
+  border: 0.5px solid #d4c9b8;
+  background: transparent;
+  font-size: 11px;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.btn-eliminar {
+  border-color: #c0392b !important;
+  color: #c0392b;
+}
+
+/* ----- MENSAJE FLOTANTE ----- */
+.admin-mensaje {
+  background: #1a1a1a;
+  color: white;
+  text-align: center;
+  padding: 0.75rem;
+  font-size: 13px;
+  letter-spacing: 1px;
+}
+
+/* ========================================
+   MODAL DE RECORTE - VERSIÓN ÚNICA
+   ======================================== */
 .crop-modal-overlay {
   position: fixed;
   top: 0;
@@ -316,6 +362,7 @@
   padding: 1rem 1.5rem;
   background: #1a1a1a;
   color: white;
+  flex-shrink: 0;
 }
 
 .crop-modal-header h3 {
@@ -335,9 +382,15 @@
 
 .crop-modal-body {
   padding: 1rem 1.5rem;
-  overflow-y: auto;
+  overflow: hidden;
   flex: 1;
   background: #f8f5f0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  max-height: 70vh;
 }
 
 .crop-modal-hint {
@@ -345,12 +398,38 @@
   color: #8a7f72;
   margin-bottom: 1rem;
   text-align: center;
+  flex-shrink: 0;
 }
 
-.crop-image {
-  max-width: 100%;
-  max-height: 60vh;
-  object-fit: contain;
+.crop-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  background: #e8e0d8;
+  border-radius: 8px;
+}
+
+/* Estilos específicos para ReactCrop */
+.crop-container .ReactCrop,
+.crop-container .react-crop-custom {
+  max-width: 100% !important;
+  max-height: 60vh !important;
+}
+
+.crop-container .ReactCrop > div,
+.crop-container .react-crop-custom > div {
+  max-width: 100% !important;
+  max-height: 60vh !important;
+}
+
+.crop-image-element {
+  max-width: 100% !important;
+  max-height: 60vh !important;
+  object-fit: contain !important;
+  display: block !important;
 }
 
 .crop-modal-footer {
@@ -360,6 +439,7 @@
   padding: 1rem 1.5rem;
   border-top: 1px solid #f0e8e8;
   background: #fff;
+  flex-shrink: 0;
 }
 
 .crop-modal-footer .btn-guardar {
@@ -398,73 +478,4 @@
 .crop-modal-footer .btn-cancelar:hover {
   border-color: #1a1a1a;
   color: #1a1a1a;
-}
-/* Contenedor del recorte - CORREGIDO */
-.crop-container {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: #f8f5f0;
-  border-radius: 8px;
-  padding: 0.5rem;
-  min-height: 200px;
-}
-
-.crop-container .ReactCrop {
-  max-width: 100% !important;
-}
-
-.crop-container .ReactCrop img {
-  max-width: 100% !important;
-  max-height: 60vh !important;
-  object-fit: contain;
-}
-
-.crop-modal-body {
-  padding: 1rem 1.5rem;
-  overflow-y: auto;
-  flex: 1;
-  background: #f8f5f0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-/* Overlay del modal - NO cierra al hacer clic fuera */
-.crop-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
-  z-index: 9999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
-}
-/* Asegurar que el recorte se vea completo */
-.crop-modal-body {
-  padding: 1rem 1.5rem;
-  overflow-y: auto;
-  flex: 1;
-  background: #f8f5f0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 300px;
-}
-
-.crop-modal-body .ReactCrop {
-  max-width: 100% !important;
-  max-height: 60vh !important;
-}
-
-.crop-modal-body .ReactCrop img {
-  max-width: 100% !important;
-  max-height: 60vh !important;
-  object-fit: contain !important;
 }
