@@ -8,7 +8,13 @@ function Admin() {
   const [password, setPassword] = useState('');
   const [productos, setProductos] = useState([]);
   const [compras, setCompras] = useState([]);
-  const [form, setForm] = useState({ nombre: '', descripcion: '', precio: '', emoji: '', imagen: '' });
+  const [form, setForm] = useState({ 
+    nombre: '', 
+    descripcion: '', 
+    precio: '', 
+    emoji: '', 
+    imagenes: []  // ← CAMBIO: ahora es un array
+  });
   const [editando, setEditando] = useState(null);
   const [mensaje, setMensaje] = useState('');
   const [vista, setVista] = useState('productos');
@@ -62,6 +68,7 @@ function Admin() {
     }
   };
 
+  // Subir imagen y agregar al array
   const subirImagen = async (archivo) => {
     setSubiendo(true);
     try {
@@ -74,7 +81,7 @@ function Admin() {
       });
       const data = await res.json();
       if (data.url) {
-        setForm(f => ({ ...f, imagen: data.url }));
+        setForm(f => ({ ...f, imagenes: [...f.imagenes, data.url] }));
         setMensaje('✅ Imagen subida correctamente');
         setTimeout(() => setMensaje(''), 3000);
       }
@@ -85,13 +92,30 @@ function Admin() {
     setSubiendo(false);
   };
 
+  // Eliminar una imagen del array
+  const eliminarImagen = (index) => {
+    setForm(f => ({
+      ...f,
+      imagenes: f.imagenes.filter((_, i) => i !== index)
+    }));
+  };
+
   const guardarProducto = async () => {
     if (!form.nombre || !form.precio) return setMensaje('❌ Nombre y precio son obligatorios');
+    
+    const dataParaEnviar = {
+      nombre: form.nombre,
+      descripcion: form.descripcion,
+      precio: form.precio,
+      emoji: form.emoji,
+      imagenes: form.imagenes || []  // ← enviamos el array
+    };
+    
     try {
       const url = editando ? `${API}/admin/productos/${editando}` : `${API}/admin/productos`;
       const method = editando ? 'PUT' : 'POST';
-      await fetch(url, { method, headers, body: JSON.stringify(form) });
-      setForm({ nombre: '', descripcion: '', precio: '', emoji: '', imagen: '' });
+      await fetch(url, { method, headers, body: JSON.stringify(dataParaEnviar) });
+      setForm({ nombre: '', descripcion: '', precio: '', emoji: '', imagenes: [] });
       setEditando(null);
       setMensaje('✅ Producto guardado');
       cargarProductos();
@@ -110,7 +134,13 @@ function Admin() {
   };
 
   const editarProducto = (prod) => {
-    setForm({ nombre: prod.nombre, descripcion: prod.descripcion, precio: prod.precio, emoji: prod.emoji, imagen: prod.imagen || '' });
+    setForm({
+      nombre: prod.nombre,
+      descripcion: prod.descripcion,
+      precio: prod.precio,
+      emoji: prod.emoji,
+      imagenes: prod.imagenes || (prod.imagen ? [prod.imagen] : [])  // ← soporte para el campo antiguo
+    });
     setEditando(prod._id);
     setVista('productos');
   };
@@ -155,8 +185,8 @@ function Admin() {
             <input placeholder="Nombre del producto" value={form.nombre} onChange={e => setForm({ ...form, nombre: e.target.value })} />
             <input placeholder="Descripción" value={form.descripcion} onChange={e => setForm({ ...form, descripcion: e.target.value })} />
             <input placeholder="Precio (ej: $12.00 USD)" value={form.precio} onChange={e => setForm({ ...form, precio: e.target.value })} />
-            <input placeholder="URL de imagen (opcional)" value={form.imagen} onChange={e => setForm({ ...form, imagen: e.target.value })} />
-
+            
+            {/* SECCIÓN DE MÚLTIPLES IMÁGENES */}
             <div className="admin-upload">
               <label className="btn-upload">
                 {subiendo ? 'Subiendo...' : '📁 Subir imagen desde computador'}
@@ -170,13 +200,27 @@ function Admin() {
               </label>
             </div>
 
-            {form.imagen && (
-              <img src={form.imagen} alt="preview" style={{ width: '100%', height: '120px', objectFit: 'cover', marginBottom: '0.75rem', border: '0.5px solid #d4c9b8' }} />
+            {/* Previsualización de imágenes subidas */}
+            {form.imagenes.length > 0 && (
+              <div className="admin-imagenes-preview">
+                {form.imagenes.map((url, index) => (
+                  <div key={index} className="admin-imagen-preview-item">
+                    <img src={url} alt={`Imagen ${index + 1}`} />
+                    <button 
+                      type="button" 
+                      className="btn-eliminar-imagen"
+                      onClick={() => eliminarImagen(index)}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
             )}
 
             <div className="admin-form-btns">
               <button className="btn-guardar" onClick={guardarProducto}>{editando ? 'Actualizar' : 'Agregar Producto'}</button>
-              {editando && <button className="btn-cancelar" onClick={() => { setEditando(null); setForm({ nombre: '', descripcion: '', precio: '', emoji: '', imagen: '' }); }}>Cancelar</button>}
+              {editando && <button className="btn-cancelar" onClick={() => { setEditando(null); setForm({ nombre: '', descripcion: '', precio: '', emoji: '', imagenes: [] }); }}>Cancelar</button>}
             </div>
           </div>
 
@@ -184,7 +228,9 @@ function Admin() {
             <h2>Productos ({productos.length})</h2>
             {productos.length === 0 ? <p>No hay productos aún.</p> : productos.map(p => (
               <div className="admin-item" key={p._id}>
-                {p.imagen ? (
+                {p.imagenes && p.imagenes.length > 0 ? (
+                  <img src={p.imagenes[0]} alt={p.nombre} style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '4px' }} />
+                ) : p.imagen ? (
                   <img src={p.imagen} alt={p.nombre} style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '4px' }} />
                 ) : (
                   <span className="admin-item-emoji">{p.emoji}</span>
@@ -193,6 +239,7 @@ function Admin() {
                   <strong>{p.nombre}</strong>
                   <span>{p.descripcion}</span>
                   <span>{p.precio}</span>
+                  <span className="admin-item-badge">{p.imagenes?.length || 0} imágenes</span>
                 </div>
                 <div className="admin-item-btns">
                   <button onClick={() => editarProducto(p)}>Editar</button>
