@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Cropper from 'react-easy-crop';
 import './Admin.css';
 
 const API = "https://jabonsa.onrender.com";
@@ -19,6 +20,13 @@ function Admin() {
   const [mensaje, setMensaje] = useState('');
   const [vista, setVista] = useState('productos');
   const [subiendo, setSubiendo] = useState(false);
+
+  // Estados para el recorte
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+  const [imagenParaRecortar, setImagenParaRecortar] = useState(null);
+  const [cropModalAbierto, setCropModalAbierto] = useState(false);
 
   const login = async () => {
     if (password.trim() === '') return;
@@ -68,27 +76,89 @@ function Admin() {
     }
   };
 
-  const subirImagen = async (archivo) => {
+  // Función para crear el recorte
+  const createCropImage = async () => {
+    if (!imagenParaRecortar || !croppedAreaPixels) return;
+    
     setSubiendo(true);
     try {
+      const image = new Image();
+      image.src = imagenParaRecortar;
+      await new Promise(resolve => image.onload = resolve);
+
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+
+      const { x, y, width, height } = croppedAreaPixels;
+      
+      canvas.width = width;
+      canvas.height = height;
+
+      ctx.drawImage(
+        image,
+        x,
+        y,
+        width,
+        height,
+        0,
+        0,
+        width,
+        height
+      );
+
+      const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.9));
+      const file = new File([blob], 'crop.jpg', { type: 'image/jpeg' });
+
       const formData = new FormData();
-      formData.append('imagen', archivo);
+      formData.append('imagen', file);
       const res = await fetch(`${API}/admin/subir-imagen`, {
         method: 'POST',
         headers: { 'Authorization': password },
         body: formData
       });
       const data = await res.json();
+
       if (data.url) {
         setForm(f => ({ ...f, imagenes: [...f.imagenes, data.url] }));
-        setMensaje('✅ Imagen subida correctamente');
+        setMensaje('✅ Imagen subida y recortada correctamente');
+        setCropModalAbierto(false);
+        setImagenParaRecortar(null);
+        setCroppedAreaPixels(null);
+        setCrop({ x: 0, y: 0 });
+        setZoom(1);
         setTimeout(() => setMensaje(''), 3000);
       }
     } catch (err) {
-      setMensaje('❌ Error al subir imagen');
+      setMensaje('❌ Error al recortar imagen: ' + err.message);
       console.error(err);
     }
     setSubiendo(false);
+  };
+
+  const cancelarRecorte = () => {
+    setCropModalAbierto(false);
+    setImagenParaRecortar(null);
+    setCroppedAreaPixels(null);
+    setCrop({ x: 0, y: 0 });
+    setZoom(1);
+  };
+
+  const seleccionarImagenParaRecortar = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      setImagenParaRecortar(reader.result);
+      setCrop({ x: 0, y: 0 });
+      setZoom(1);
+      setCropModalAbierto(true);
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+
+  const onCropComplete = (croppedArea, croppedAreaPixels) => {
+    setCroppedAreaPixels(croppedAreaPixels);
   };
 
   const eliminarImagen = (index) => {
@@ -190,12 +260,12 @@ function Admin() {
             
             <div className="admin-upload">
               <label className="btn-upload">
-                {subiendo ? 'Subiendo...' : '📁 Subir imagen desde computador'}
+                {subiendo ? 'Subiendo...' : '📁 Subir imagen desde computador (con recorte)'}
                 <input
                   type="file"
                   accept="image/*"
                   style={{ display: 'none' }}
-                  onChange={e => e.target.files[0] && subirImagen(e.target.files[0])}
+                  onChange={seleccionarImagenParaRecortar}
                   disabled={subiendo}
                 />
               </label>
@@ -274,6 +344,60 @@ function Admin() {
                 </div>
               ))
             )}
+          </div>
+        </div>
+      )}
+
+      {/* ====== MODAL DE RECORTE CON REACT-EASY-CROP (RECORTE LIBRE) ====== */}
+      {cropModalAbierto && (
+        <div className="crop-modal-overlay">
+          <div className="crop-modal-box" onClick={e => e.stopPropagation()}>
+            <div className="crop-modal-header">
+              <h3>✂️ Recortar imagen</h3>
+              <button className="crop-modal-close" onClick={cancelarRecorte}>✕</button>
+            </div>
+            <div className="crop-modal-body">
+              <p className="crop-modal-hint">Arrastra para seleccionar el área que quieres mostrar</p>
+              <div className="crop-container">
+                {imagenParaRecortar && (
+                  <Cropper
+                    image={imagenParaRecortar}
+                    crop={crop}
+                    zoom={zoom}
+                    aspect={undefined}  // ← RECORTE LIBRE
+                    onCropChange={setCrop}
+                    onZoomChange={setZoom}
+                    onCropComplete={onCropComplete}
+                    cropShape="rect"
+                    showGrid={true}
+                    style={{
+                      containerStyle: {
+                        width: '100%',
+                        height: '100%',
+                        minHeight: '400px',
+                        maxHeight: '60vh',
+                        position: 'relative',
+                        background: '#e8e0d8'
+                      },
+                      mediaStyle: {
+                        maxWidth: '100%',
+                        maxHeight: '100%'
+                      }
+                    }}
+                  />
+                )}
+              </div>
+            </div>
+            <div className="crop-modal-footer">
+              <button className="btn-cancelar" onClick={cancelarRecorte}>Cancelar</button>
+              <button 
+                className="btn-guardar" 
+                onClick={createCropImage}
+                disabled={subiendo}
+              >
+                {subiendo ? 'Subiendo...' : '✅ Subir imagen recortada'}
+              </button>
+            </div>
           </div>
         </div>
       )}
