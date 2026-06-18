@@ -422,23 +422,37 @@ console.log("✅ Productos procesados:", data.length);
 
       {/* CATEGORÍAS */}
       <section className="categorias-section animate" id="categorias">
-        <div className="categorias-grid">
-          {categorias.map(cat => (
-            <div key={cat.id} className={`categoria-card ${categoriaActiva === cat.id ? 'activa' : ''}`} onClick={() => {
-              setCategoriaActiva(cat.id);
-              // Scroll suave después de cambiar categoría
-              setTimeout(() => {
-                const productosSection = document.getElementById('collection');
-                if (productosSection) productosSection.scrollIntoView({ behavior: 'smooth' });
-              }, 100);
-            }}>
-              <div className="categoria-icon">{cat.emoji}</div>
-              <h3>Jabones {cat.nombre === 'Todos' ? '' : 'de'} {cat.nombre}</h3>
-              <p>{cat.id === 'todos' ? 'Ver todo' : cat.nombre === 'Rosa' ? 'Hidratación profunda' : cat.nombre === 'Uva' ? 'Antioxidante natural' : cat.nombre === 'Floral' ? 'Aroma delicado' : 'Para ocasiones especiales'}</p>
-            </div>
-          ))}
+  <div className="categorias-grid">
+    {categorias.map(cat => {
+      // Definir descripción según categoría
+      let descripcion = '';
+      if (cat.id === 'todos') descripcion = 'Ver todo';
+      else if (cat.id === 'jabones') descripcion = 'Jabones artesanales';
+      else if (cat.id === 'exfoliantes') descripcion = 'Exfoliantes corporales';
+      else if (cat.id === 'cremas') descripcion = 'Cremas hidratantes';
+      else if (cat.id === 'perfumes') descripcion = 'Perfumes naturales';
+      else if (cat.id === 'regalos') descripcion = 'Sets y packs';
+      
+      return (
+        <div 
+          key={cat.id} 
+          className={`categoria-card ${categoriaActiva === cat.id ? 'activa' : ''}`} 
+          onClick={() => {
+            setCategoriaActiva(cat.id);
+            setTimeout(() => {
+              const productosSection = document.getElementById('collection');
+              if (productosSection) productosSection.scrollIntoView({ behavior: 'smooth' });
+            }, 100);
+          }}
+        >
+          <div className="categoria-icon">{cat.emoji}</div>
+          <h3>{cat.nombre}</h3>
+          <p>{descripcion}</p>
         </div>
-      </section>
+      );
+    })}
+  </div>
+</section>
 
       {/* PRODUCTOS */}
       <section className="sd-section" id="collection">
