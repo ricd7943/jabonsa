@@ -4,23 +4,32 @@ import './Admin.css';
 const API = "https://jabonsa.onrender.com";
 
 function Admin() {
+  // ====== ESTADOS GENERALES ======
   const [autenticado, setAutenticado] = useState(false);
   const [password, setPassword] = useState('');
   const [productos, setProductos] = useState([]);
   const [compras, setCompras] = useState([]);
+  const [categorias, setCategorias] = useState([]);
+  const [mensaje, setMensaje] = useState('');
+  const [vista, setVista] = useState('productos');
+  const [subiendo, setSubiendo] = useState(false);
+
+  // ====== ESTADOS PARA PRODUCTOS ======
   const [form, setForm] = useState({ 
     nombre: '', 
     descripcion: '', 
     precio: '', 
     emoji: '', 
-    imagenes: []
+    imagenes: [],
+    categoria: ''
   });
   const [editando, setEditando] = useState(null);
-  const [mensaje, setMensaje] = useState('');
-  const [vista, setVista] = useState('productos');
-  const [subiendo, setSubiendo] = useState(false);
 
-  // Estados para recorte manual con Canvas
+  // ====== ESTADOS PARA CATEGORÍAS ======
+  const [categoriaForm, setCategoriaForm] = useState({ nombre: '', emoji: '📦', palabrasClave: '' });
+  const [editandoCategoria, setEditandoCategoria] = useState(null);
+
+  // ====== ESTADOS PARA RECORTE ======
   const [imagenParaRecortar, setImagenParaRecortar] = useState(null);
   const [cropModalAbierto, setCropModalAbierto] = useState(false);
   const [crop, setCrop] = useState({ x: 0, y: 0, width: 0, height: 0 });
@@ -43,6 +52,7 @@ function Admin() {
       setProductos(data);
       setAutenticado(true);
       cargarCompras(password);
+      cargarCategorias(password); // ← NUEVO
     } catch (err) {
       alert('Error conectando al servidor, intenta de nuevo');
       console.error(err);
@@ -51,6 +61,7 @@ function Admin() {
 
   const headers = { 'Content-Type': 'application/json', 'Authorization': password };
 
+  // ====== CARGAR DATOS ======
   const cargarProductos = async (pass) => {
     try {
       const res = await fetch(`${API}/admin/productos`, {
@@ -72,6 +83,19 @@ function Admin() {
       if (!res.ok) return;
       const data = await res.json();
       setCompras(data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const cargarCategorias = async (pass) => {
+    try {
+      const res = await fetch(`${API}/admin/categorias`, {
+        headers: { 'Authorization': pass || password }
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      setCategorias(data);
     } catch (err) {
       console.error(err);
     }
@@ -212,6 +236,7 @@ function Admin() {
     setIsDragging(false);
   };
 
+  // ====== CRUD PRODUCTOS ======
   const eliminarImagen = (index) => {
     setForm(f => ({
       ...f,
@@ -226,13 +251,14 @@ function Admin() {
       descripcion: form.descripcion,
       precio: form.precio,
       emoji: form.emoji,
-      imagenes: form.imagenes || []
+      imagenes: form.imagenes || [],
+      categoria: form.categoria || null
     };
     try {
       const url = editando ? `${API}/admin/productos/${editando}` : `${API}/admin/productos`;
       const method = editando ? 'PUT' : 'POST';
       await fetch(url, { method, headers, body: JSON.stringify(dataParaEnviar) });
-      setForm({ nombre: '', descripcion: '', precio: '', emoji: '', imagenes: [] });
+      setForm({ nombre: '', descripcion: '', precio: '', emoji: '', imagenes: [], categoria: '' });
       setEditando(null);
       setMensaje('✅ Producto guardado');
       cargarProductos();
@@ -262,12 +288,54 @@ function Admin() {
       descripcion: prod.descripcion || '',
       precio: prod.precio || '',
       emoji: prod.emoji || '🧼',
-      imagenes: imagenesArray
+      imagenes: imagenesArray,
+      categoria: prod.categoria?._id || prod.categoria || ''
     });
     setEditando(prod._id);
     setVista('productos');
   };
 
+  // ====== CRUD CATEGORÍAS ======
+  const guardarCategoria = async () => {
+    if (!categoriaForm.nombre) return setMensaje('❌ El nombre de la categoría es obligatorio');
+    const dataParaEnviar = {
+      nombre: categoriaForm.nombre,
+      emoji: categoriaForm.emoji || '📦',
+      palabrasClave: categoriaForm.palabrasClave ? categoriaForm.palabrasClave.split(',').map(p => p.trim()) : []
+    };
+    try {
+      const url = editandoCategoria ? `${API}/admin/categorias/${editandoCategoria}` : `${API}/admin/categorias`;
+      const method = editandoCategoria ? 'PUT' : 'POST';
+      await fetch(url, { method, headers, body: JSON.stringify(dataParaEnviar) });
+      setCategoriaForm({ nombre: '', emoji: '📦', palabrasClave: '' });
+      setEditandoCategoria(null);
+      setMensaje('✅ Categoría guardada');
+      cargarCategorias();
+      setTimeout(() => setMensaje(''), 3000);
+    } catch (err) { console.error(err); }
+  };
+
+  const eliminarCategoria = async (id) => {
+    if (!window.confirm('¿Eliminar esta categoría? Los productos quedarán sin categoría.')) return;
+    try {
+      await fetch(`${API}/admin/categorias/${id}`, { method: 'DELETE', headers });
+      cargarCategorias();
+      setMensaje('✅ Categoría eliminada');
+      setTimeout(() => setMensaje(''), 3000);
+    } catch (err) { console.error(err); }
+  };
+
+  const editarCategoria = (cat) => {
+    setCategoriaForm({
+      nombre: cat.nombre || '',
+      emoji: cat.emoji || '📦',
+      palabrasClave: cat.palabrasClave ? cat.palabrasClave.join(', ') : ''
+    });
+    setEditandoCategoria(cat._id);
+    setVista('categorias');
+  };
+
+  // ====== RENDER ======
   if (!autenticado) {
     return (
       <div className="admin-login">
@@ -293,6 +361,7 @@ function Admin() {
         <div className="admin-logo">Savon d'Art <span>Admin</span></div>
         <nav>
           <button className={vista === 'productos' ? 'active' : ''} onClick={() => setVista('productos')}>Productos</button>
+          <button className={vista === 'categorias' ? 'active' : ''} onClick={() => setVista('categorias')}>Categorías</button>
           <button className={vista === 'pedidos' ? 'active' : ''} onClick={() => setVista('pedidos')}>Pedidos</button>
           <button onClick={() => setAutenticado(false)}>Salir</button>
         </nav>
@@ -300,6 +369,7 @@ function Admin() {
 
       {mensaje && <div className="admin-mensaje">{mensaje}</div>}
 
+      {/* ====== VISTA PRODUCTOS ====== */}
       {vista === 'productos' && (
         <div className="admin-content">
           <div className="admin-form">
@@ -309,6 +379,18 @@ function Admin() {
             <input placeholder="Descripción" value={form.descripcion} onChange={e => setForm({ ...form, descripcion: e.target.value })} />
             <input placeholder="Precio (ej: $12.00 USD)" value={form.precio} onChange={e => setForm({ ...form, precio: e.target.value })} />
             
+            {/* ====== SELECTOR DE CATEGORÍA ====== */}
+            <select 
+              value={form.categoria} 
+              onChange={e => setForm({ ...form, categoria: e.target.value })}
+              style={{ width: '100%', padding: '0.6rem', marginBottom: '0.75rem', border: '0.5px solid #d4c9b8', background: '#faf9f7' }}
+            >
+              <option value="">Sin categoría</option>
+              {categorias.map(cat => (
+                <option key={cat._id} value={cat._id}>{cat.emoji} {cat.nombre}</option>
+              ))}
+            </select>
+
             <div className="admin-upload">
               <label className="btn-upload" style={{ marginBottom: '0.5rem' }}>
                 {subiendo ? 'Subiendo...' : '📁 Subir imagen sin recortar'}
@@ -350,7 +432,7 @@ function Admin() {
               {editando && (
                 <button className="btn-cancelar" onClick={() => { 
                   setEditando(null); 
-                  setForm({ nombre: '', descripcion: '', precio: '', emoji: '', imagenes: [] }); 
+                  setForm({ nombre: '', descripcion: '', precio: '', emoji: '', imagenes: [], categoria: '' }); 
                 }}>
                   Cancelar
                 </button>
@@ -376,7 +458,9 @@ function Admin() {
                     <strong>{p.nombre}</strong>
                     <span>{p.descripcion}</span>
                     <span>{p.precio}</span>
-                    <span className="admin-item-badge">{p.imagenes?.length || 0} imágenes</span>
+                    <span className="admin-item-badge">
+                      {p.categoria ? `${p.categoria.emoji || '📦'} ${p.categoria.nombre}` : 'Sin categoría'}
+                    </span>
                   </div>
                   <div className="admin-item-btns">
                     <button onClick={() => editarProducto(p)}>Editar</button>
@@ -389,6 +473,65 @@ function Admin() {
         </div>
       )}
 
+      {/* ====== VISTA CATEGORÍAS ====== */}
+      {vista === 'categorias' && (
+        <div className="admin-content">
+          <div className="admin-form">
+            <h2>{editandoCategoria ? 'Editar Categoría' : 'Nueva Categoría'}</h2>
+            <input 
+              placeholder="Nombre (ej: Jabones)" 
+              value={categoriaForm.nombre} 
+              onChange={e => setCategoriaForm({ ...categoriaForm, nombre: e.target.value })} 
+            />
+            <input 
+              placeholder="Emoji (ej: 🧼)" 
+              value={categoriaForm.emoji} 
+              onChange={e => setCategoriaForm({ ...categoriaForm, emoji: e.target.value })} 
+            />
+            <input 
+              placeholder="Palabras clave (separadas por comas, ej: jabon, jabón)" 
+              value={categoriaForm.palabrasClave} 
+              onChange={e => setCategoriaForm({ ...categoriaForm, palabrasClave: e.target.value })} 
+            />
+            <div className="admin-form-btns">
+              <button className="btn-guardar" onClick={guardarCategoria}>
+                {editandoCategoria ? 'Actualizar' : 'Agregar Categoría'}
+              </button>
+              {editandoCategoria && (
+                <button className="btn-cancelar" onClick={() => { 
+                  setEditandoCategoria(null); 
+                  setCategoriaForm({ nombre: '', emoji: '📦', palabrasClave: '' }); 
+                }}>
+                  Cancelar
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="admin-lista">
+            <h2>Categorías ({categorias.length})</h2>
+            {categorias.length === 0 ? (
+              <p>No hay categorías aún. ¡Crea la primera!</p>
+            ) : (
+              categorias.map(cat => (
+                <div className="admin-item" key={cat._id}>
+                  <span style={{ fontSize: '24px', marginRight: '0.5rem' }}>{cat.emoji || '📦'}</span>
+                  <div className="admin-item-info">
+                    <strong>{cat.nombre}</strong>
+                    <span>Palabras clave: {cat.palabrasClave?.join(', ') || 'Ninguna'}</span>
+                  </div>
+                  <div className="admin-item-btns">
+                    <button onClick={() => editarCategoria(cat)}>Editar</button>
+                    <button className="btn-eliminar" onClick={() => eliminarCategoria(cat._id)}>Eliminar</button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ====== VISTA PEDIDOS ====== */}
       {vista === 'pedidos' && (
         <div className="admin-content">
           <h2>Pedidos recibidos ({compras.length})</h2>
@@ -409,7 +552,7 @@ function Admin() {
         </div>
       )}
 
-      {/* ====== MODAL DE RECORTE CON CANVAS ====== */}
+      {/* ====== MODAL DE RECORTE ====== */}
       {cropModalAbierto && (
         <div className="crop-modal-overlay">
           <div className="crop-modal-box" onClick={e => e.stopPropagation()}>
