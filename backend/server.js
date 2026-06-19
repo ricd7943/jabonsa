@@ -26,23 +26,33 @@ mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('🗄 MongoDB conectado'))
   .catch(err => console.log(err));
 
-// Modelo de compra
+// ====== MODELO DE COMPRA ======
 const CompraSchema = new mongoose.Schema({
   producto: String,
   fecha: { type: Date, default: Date.now }
 });
 const Compra = mongoose.model('Compra', CompraSchema);
 
-// Modelo de producto
+// ====== MODELO DE PRODUCTO ======
 const ProductoSchema = new mongoose.Schema({
   nombre: String,
   descripcion: String,
   precio: String,
   emoji: String,
-  imagenes: { type: [String], default: [] },  // ← CAMBIO IMPORTANTE
+  imagenes: { type: [String], default: [] },
+  categoria: { type: mongoose.Schema.Types.ObjectId, ref: 'Categoria' }, // ← NUEVO
   activo: { type: Boolean, default: true }
 });
 const Producto = mongoose.model('Producto', ProductoSchema);
+
+// ====== MODELO DE CATEGORÍA (NUEVO) ======
+const CategoriaSchema = new mongoose.Schema({
+  nombre: { type: String, required: true, unique: true },
+  emoji: { type: String, default: '📦' },
+  palabrasClave: { type: [String], default: [] },
+  activo: { type: Boolean, default: true }
+});
+const Categoria = mongoose.model('Categoria', CategoriaSchema);
 
 // Middleware de admin
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "savon2026";
@@ -54,12 +64,23 @@ const verificarAdmin = (req, res, next) => {
 
 // ---- RUTAS PÚBLICAS ----
 
+// Obtener productos (con populate de categoría)
 app.get('/productos', async (req, res) => {
   try {
-    const productos = await Producto.find({ activo: true });
+    const productos = await Producto.find({ activo: true }).populate('categoria');
     res.json(productos);
   } catch (err) {
     res.status(500).json({ mensaje: 'Error al obtener productos' });
+  }
+});
+
+// Obtener categorías (público)
+app.get('/categorias', async (req, res) => {
+  try {
+    const categorias = await Categoria.find({ activo: true });
+    res.json(categorias);
+  } catch (err) {
+    res.status(500).json({ mensaje: 'Error al obtener categorías' });
   }
 });
 
@@ -106,7 +127,7 @@ app.post('/admin/subir-imagen', verificarAdmin, upload.single('imagen'), async (
 
 const PAYPAL_CLIENT_ID = process.env.PAYPAL_CLIENT_ID_LIVE;
 const PAYPAL_CLIENT_SECRET = process.env.PAYPAL_CLIENT_SECRET_LIVE;
-const PAYPAL_API = 'https://api-m.paypal.com'; // Sin sandbox
+const PAYPAL_API = 'https://api-m.paypal.com';
 
 const getPayPalToken = async () => {
   const res = await fetch(`${PAYPAL_API}/v1/oauth2/token`, {
@@ -166,11 +187,11 @@ app.post('/paypal/capturar-orden', async (req, res) => {
   }
 });
 
-// ---- RUTAS DE ADMIN ----
+// ---- RUTAS DE ADMIN (PRODUCTOS) ----
 
 app.get('/admin/productos', verificarAdmin, async (req, res) => {
   try {
-    const productos = await Producto.find();
+    const productos = await Producto.find().populate('categoria');
     res.json(productos);
   } catch (err) {
     res.status(500).json({ mensaje: 'Error' });
@@ -179,6 +200,7 @@ app.get('/admin/productos', verificarAdmin, async (req, res) => {
 
 app.post('/admin/productos', verificarAdmin, async (req, res) => {
   try {
+    // Si se envía categoriaId, lo asignamos; si no, se buscará por palabras clave automáticamente
     const producto = new Producto(req.body);
     await producto.save();
     res.json(producto);
@@ -189,7 +211,7 @@ app.post('/admin/productos', verificarAdmin, async (req, res) => {
 
 app.put('/admin/productos/:id', verificarAdmin, async (req, res) => {
   try {
-    const producto = await Producto.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const producto = await Producto.findByIdAndUpdate(req.params.id, req.body, { new: true }).populate('categoria');
     res.json(producto);
   } catch (err) {
     res.status(500).json({ mensaje: 'Error al actualizar producto' });
@@ -214,6 +236,49 @@ app.get('/admin/compras', verificarAdmin, async (req, res) => {
   }
 });
 
-// Servidor
+// ====== RUTAS DE ADMIN (CATEGORÍAS) - NUEVO ======
+
+// Obtener todas las categorías (admin)
+app.get('/admin/categorias', verificarAdmin, async (req, res) => {
+  try {
+    const categorias = await Categoria.find();
+    res.json(categorias);
+  } catch (err) {
+    res.status(500).json({ mensaje: 'Error al obtener categorías' });
+  }
+});
+
+// Crear categoría
+app.post('/admin/categorias', verificarAdmin, async (req, res) => {
+  try {
+    const categoria = new Categoria(req.body);
+    await categoria.save();
+    res.json(categoria);
+  } catch (err) {
+    res.status(500).json({ mensaje: 'Error al crear categoría' });
+  }
+});
+
+// Actualizar categoría
+app.put('/admin/categorias/:id', verificarAdmin, async (req, res) => {
+  try {
+    const categoria = await Categoria.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.json(categoria);
+  } catch (err) {
+    res.status(500).json({ mensaje: 'Error al actualizar categoría' });
+  }
+});
+
+// Eliminar categoría
+app.delete('/admin/categorias/:id', verificarAdmin, async (req, res) => {
+  try {
+    await Categoria.findByIdAndDelete(req.params.id);
+    res.json({ mensaje: 'Categoría eliminada' });
+  } catch (err) {
+    res.status(500).json({ mensaje: 'Error al eliminar categoría' });
+  }
+});
+
+// ---- SERVIDOR ----
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => console.log(`🚀 Backend en puerto ${PORT}`));
