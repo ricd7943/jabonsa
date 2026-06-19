@@ -30,6 +30,7 @@ function App() {
   const [newsletterOk, setNewsletterOk] = useState(false);
   const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 });
   const [cargando, setCargando] = useState(true);
+  const [categoriasApi, setCategoriasApi] = useState([]); // ← NUEVO
 
   useScrollAnimation([productos]);
 
@@ -38,6 +39,7 @@ function App() {
   const WHATSAPP = "https://wa.me/593983444105?text=Hola!%20Me%20interesa%20hacer%20un%20pedido%20de%20Sarielle%20Botanics%20🌸";
   const INSTAGRAM = "https://www.instagram.com/sarita_aesthetic_treatments";
   const EMAIL = "mailto:sarayaelnaranjo5@gmail.com";
+  
 
 const categorias = [
   { id: 'todos', nombre: 'Todos', emoji: '✨', palabrasClave: [] },
@@ -71,7 +73,7 @@ const categorias = [
   // Feedback visual al cambiar de categoría
   useEffect(() => {
     if (categoriaActiva !== 'todos') {
-      const catNombre = categorias.find(c => c.id === categoriaActiva)?.nombre;
+      const catNombre = categoriasConTodos.find(c => c._id === categoriaActiva)?.nombre || 'Categoría';
       const cantidad = productosFiltrados.length;
       setMensaje(`✨ Mostrando ${cantidad} productos de ${catNombre} ✨`);
       setTimeout(() => setMensaje(''), 2000);
@@ -133,6 +135,18 @@ const categorias = [
     } catch (err) { console.error(err); }
   };
 
+  // ====== NUEVA FUNCIÓN PARA CARGAR CATEGORÍAS ======
+  const fetchCategorias = async () => {
+    try {
+      const res = await fetch(`${API}/categorias`);
+      const data = await res.json();
+      setCategoriasApi(data);
+      console.log("📦 Categorías cargadas:", data);
+    } catch (err) {
+      console.error("❌ Error al cargar categorías:", err);
+    }
+  };
+
  const fetchProductos = async () => {
   try {
     setCargando(true);
@@ -141,44 +155,13 @@ const categorias = [
     
     console.log("📦 Productos desde API:", data);
     
-    // Asignar categorías con prioridad
-    data = data.map(prod => {
-      const nombreLower = (prod.nombre || '').toLowerCase();
-      const descLower = (prod.descripcion || '').toLowerCase();
-      
-      let categoriaAsignada = 'todos';
-      let prioridad = -1;
-      
-      for (const cat of categorias) {
-        if (cat.id === 'todos') continue;
-        
-        let prioridadCat = 0;
-        if (cat.id === 'jabones') prioridadCat = 10;
-        else if (cat.id === 'exfoliantes') prioridadCat = 5;
-        else if (cat.id === 'cremas') prioridadCat = 8;
-        else if (cat.id === 'perfumes') prioridadCat = 7;
-        else if (cat.id === 'regalos') prioridadCat = 6;
-        
-        for (const palabra of cat.palabrasClave) {
-          if (nombreLower.includes(palabra) || descLower.includes(palabra)) {
-            if (prioridadCat > prioridad) {
-              prioridad = prioridadCat;
-              categoriaAsignada = cat.id;
-            }
-            break;
-          }
-        }
-      }
-      
-      console.log(`Producto: "${prod.nombre}" → Categoría: ${categoriaAsignada}`);
-      
-      return { 
-        ...prod, 
-        categoria: categoriaAsignada,
-        emoji: prod.emoji || '🧼',
-        descripcion: prod.descripcion || 'Jabón artesanal 100% natural'
-      };
-    });
+    // ====== LOS PRODUCTOS YA VIENEN CON CATEGORÍA ASIGNADA ======
+    // Solo nos aseguramos de que tengan un campo 'categoria' válido
+    data = data.map(prod => ({
+      ...prod,
+      emoji: prod.emoji || '🧼',
+      descripcion: prod.descripcion || 'Jabón artesanal 100% natural'
+    }));
     
     // ====== PRODUCTO FIJO SIEMPRE PRIMERO ======
     const nombreFijo = "Jabones artesanales premium";
@@ -191,7 +174,6 @@ const categorias = [
 
     setProductos(data);
     console.log("✅ Productos procesados:", data.length);
-    // ===========================================
   } catch (err) { 
     console.error("❌ Error fetchProductos:", err); 
   } finally {
@@ -202,7 +184,14 @@ const categorias = [
   useEffect(() => { 
     fetchCompras(); 
     fetchProductos(); 
+    fetchCategorias(); // ← NUEVO
   }, []);
+
+  // ====== CREAR LA CATEGORÍA "TODOS" DINÁMICAMENTE ======
+  const categoriasConTodos = [
+    { _id: 'todos', nombre: 'Todos', emoji: '✨' },
+    ...categoriasApi
+  ];
 
   // Filtro de productos por búsqueda y categoría
   const productosFiltrados = productos.filter(p => {
@@ -211,10 +200,10 @@ const categorias = [
       (p.nombre && p.nombre.toLowerCase().includes(busqueda.toLowerCase())) ||
       (p.descripcion && p.descripcion.toLowerCase().includes(busqueda.toLowerCase()));
     
-    // Filtro por categoría
+    // Filtro por categoría (usando el _id)
     let coincideCategoria = true;
     if (categoriaActiva !== 'todos') {
-      coincideCategoria = p.categoria === categoriaActiva;
+      coincideCategoria = p.categoria?._id === categoriaActiva;
     }
     
     return coincideBusqueda && coincideCategoria;
@@ -427,37 +416,38 @@ const categorias = [
 
       {/* CATEGORÍAS */}
       <section className="categorias-section animate" id="categorias">
-  <div className="categorias-grid">
-    {categorias.map(cat => {
-      // Definir descripción según categoría
-      let descripcion = '';
-      if (cat.id === 'todos') descripcion = 'Ver todo';
-      else if (cat.id === 'jabones') descripcion = 'Jabones artesanales';
-      else if (cat.id === 'exfoliantes') descripcion = 'Exfoliantes corporales';
-      else if (cat.id === 'cremas') descripcion = 'Cremas hidratantes';
-      else if (cat.id === 'perfumes') descripcion = 'Perfumes naturales';
-      else if (cat.id === 'regalos') descripcion = 'Sets y packs';
-      
-      return (
-        <div 
-          key={cat.id} 
-          className={`categoria-card ${categoriaActiva === cat.id ? 'activa' : ''}`} 
-          onClick={() => {
-            setCategoriaActiva(cat.id);
-            setTimeout(() => {
-              const productosSection = document.getElementById('collection');
-              if (productosSection) productosSection.scrollIntoView({ behavior: 'smooth' });
-            }, 100);
-          }}
-        >
-          <div className="categoria-icon">{cat.emoji}</div>
-          <h3>{cat.nombre}</h3>
-          <p>{descripcion}</p>
+        <div className="categorias-grid">
+          {categoriasConTodos.map(cat => {
+            // Definir descripción según categoría
+            let descripcion = '';
+            if (cat._id === 'todos') descripcion = 'Ver todo';
+            else if (cat.nombre === 'Jabones') descripcion = 'Jabones artesanales';
+            else if (cat.nombre === 'Exfoliantes') descripcion = 'Exfoliantes corporales';
+            else if (cat.nombre === 'Cremas') descripcion = 'Cremas hidratantes';
+            else if (cat.nombre === 'Perfumes') descripcion = 'Perfumes naturales';
+            else if (cat.nombre === 'Regalos') descripcion = 'Sets y packs';
+            else descripcion = 'Categoría';
+            
+            return (
+              <div 
+                key={cat._id} 
+                className={`categoria-card ${categoriaActiva === cat._id ? 'activa' : ''}`} 
+                onClick={() => {
+                  setCategoriaActiva(cat._id);
+                  setTimeout(() => {
+                    const productosSection = document.getElementById('collection');
+                    if (productosSection) productosSection.scrollIntoView({ behavior: 'smooth' });
+                  }, 100);
+                }}
+              >
+                <div className="categoria-icon">{cat.emoji || '📦'}</div>
+                <h3>{cat.nombre}</h3>
+                <p>{descripcion}</p>
+              </div>
+            );
+          })}
         </div>
-      );
-    })}
-  </div>
-</section>
+      </section>
 
       {/* PRODUCTOS */}
       <section className="sd-section" id="collection">
@@ -468,15 +458,19 @@ const categorias = [
           <p className="section-subtitle">Cada jabón es una obra de arte elaborada con los mejores ingredientes de la naturaleza</p>
         </div>
         <div className="filtros-wrap animate">
-          {categorias.map(cat => (
-            <button key={cat.id} className={`filtro-btn ${categoriaActiva === cat.id ? 'activo' : ''}`} onClick={() => {
-              setCategoriaActiva(cat.id);
-              setTimeout(() => {
-                const productosSection = document.getElementById('collection');
-                if (productosSection) productosSection.scrollIntoView({ behavior: 'smooth' });
-              }, 100);
-            }}>
-              {cat.emoji} {cat.nombre}
+          {categoriasConTodos.map(cat => (
+            <button 
+              key={cat._id} 
+              className={`filtro-btn ${categoriaActiva === cat._id ? 'activo' : ''}`} 
+              onClick={() => {
+                setCategoriaActiva(cat._id);
+                setTimeout(() => {
+                  const productosSection = document.getElementById('collection');
+                  if (productosSection) productosSection.scrollIntoView({ behavior: 'smooth' });
+                }, 100);
+              }}
+            >
+              {cat.emoji || '📦'} {cat.nombre}
             </button>
           ))}
         </div>
@@ -497,7 +491,7 @@ const categorias = [
                 <p>
                   {busqueda 
                     ? `No encontramos "${busqueda}" en nuestra colección` 
-                    : `✨ Los productos de ${categorias.find(c => c.id === categoriaActiva)?.nombre || 'esta categoría'} están en camino ✨`}
+                    : `✨ Los productos de ${categoriasConTodos.find(c => c._id === categoriaActiva)?.nombre || 'esta categoría'} están en camino ✨`}
                 </p>
                 <p className="no-productos-sugerencia">
                   💡 ¿Te interesa algún producto en especial? 
